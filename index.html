@@ -82,7 +82,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 .reveal-title { font-size: clamp(26px,6vw,38px); font-weight: 400; color: var(--black); text-align: center; letter-spacing: -0.01em; line-height: 1.2; }
 .reveal-artist { font-size: clamp(16px,3.8vw,20px); color: var(--black); opacity: 0.65; text-align: center; }
 .reveal-hint { position: absolute; bottom: clamp(200px,28vh,240px); font-size: 14px; color: var(--black); opacity: 0.7; letter-spacing: 0.1em; animation: ph 3s ease-in-out infinite; }
-.reveal-cta { position: absolute; bottom: clamp(36px,7vh,52px); font-size: 12px; color: var(--black); opacity: 0.35; letter-spacing: 0.12em; text-transform: uppercase; animation: none; }
+.reveal-cta { position: absolute; bottom: clamp(36px,7vh,52px); font-size: 12px; color: var(--black); opacity: 0.6; letter-spacing: 0.12em; text-transform: uppercase; animation: none; }
 
 /* S6 */
 #s6 { background: var(--bg); justify-content: center; }
@@ -325,20 +325,22 @@ document.getElementById('s1').addEventListener('click', function() {
   if (widgetReady) {
     widget.skip(sess.tOrder[0]);
     widget.play();
-    setTimeout(function() { widget.pause(); }, 80);
+    setTimeout(function() { widget.pause(); }, 200);
   }
   // Build entry list with fresh shuffle
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
-    // Trigger play IMMEDIATELY inside user gesture so iOS allows audio
-    var idx = sess.tOrder[sess.cur];
-    if (widgetReady) {
-      widget.skip(idx);
-      widget.play();
-      sess._playedOnGesture = true;
-    }
     show('s3');
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 600);
+    // Delay slightly to let Safari prime complete, then play inside gesture context
+    setTimeout(function() {
+      var idx = sess.tOrder[sess.cur];
+      if (widgetReady) {
+        widget.skip(idx);
+        widget.play();
+        sess._playedOnGesture = true;
+      }
+      setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 400);
+    }, 250);
   });
   show('s2');
 });
