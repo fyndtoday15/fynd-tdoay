@@ -6,232 +6,93 @@
 <title>FYND TODAY</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-:root {
-  --bg: #FCFBF4;
-  --black: #000000;
-  --f: 'DejaVu LGC Sans', 'DM Sans', Arial, sans-serif;
-}
-html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: var(--bg);
-  font-family: var(--f);
-  -webkit-font-smoothing: antialiased;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root { --bg: #FCFBF4; --black: #000000; --f: 'DejaVu LGC Sans','DM Sans',Arial,sans-serif; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--f); -webkit-font-smoothing: antialiased; }
+
 .screen {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center;
   padding: 0 32px;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0; pointer-events: none;
   transition: opacity 0.4s ease;
 }
-.screen.active {
-  opacity: 1;
-  pointer-events: all;
-}
+.screen.active { opacity: 1; pointer-events: all; }
 
-/* S1 — ARRIVAL */
+/* S1 */
 #s1 { background: var(--bg); justify-content: center; cursor: pointer; }
-.s1-word {
-  font-size: clamp(52px, 12vw, 88px);
-  font-weight: 400;
-  color: var(--black);
-  letter-spacing: -0.02em;
-  user-select: none;
-}
-.s1-hint {
-  position: absolute;
-  bottom: 44px;
-  font-size: 11px;
-  color: var(--black);
-  opacity: 0.25;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  animation: ph 3s ease-in-out infinite;
-}
+.s1-word { font-size: clamp(52px,12vw,88px); font-weight: 400; color: var(--black); letter-spacing: -0.02em; user-select: none; }
+.s1-hint { position: absolute; bottom: 44px; font-size: 11px; color: var(--black); opacity: 0.25; letter-spacing: 0.12em; text-transform: uppercase; animation: ph 3s ease-in-out infinite; }
 @keyframes ph { 0%,100%{opacity:.15} 50%{opacity:.35} }
 
-/* S2 — ENTRY */
-#s2 {
-  background: var(--bg);
-  justify-content: flex-start;
-  padding-top: clamp(56px, 11vh, 88px);
-  overflow-y: auto;
-}
-.screen-label {
-  font-size: 11px;
-  color: var(--black);
-  opacity: 0.35;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 40px;
-  align-self: flex-start;
-}
-.stmt {
-  width: 100%;
-  padding: 20px 0;
-  font-size: clamp(15px, 3.8vw, 18px);
-  font-weight: 400;
-  line-height: 1.55;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  cursor: pointer;
-  user-select: none;
-  transition: opacity 0.15s ease;
-  color: var(--black);
-}
+/* S2 */
+#s2 { background: var(--bg); justify-content: flex-start; padding-top: clamp(56px,11vh,88px); overflow-y: auto; }
+.screen-label { font-size: 11px; color: var(--black); opacity: 0.35; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 40px; align-self: flex-start; }
+.stmt { width: 100%; padding: 20px 0; font-size: clamp(15px,3.8vw,18px); font-weight: 400; color: var(--black); line-height: 1.55; border-bottom: 1px solid rgba(0,0,0,0.08); cursor: pointer; user-select: none; transition: opacity 0.15s ease; }
 .stmt:first-of-type { border-top: 1px solid rgba(0,0,0,0.08); }
 .stmt.tapped { opacity: 0.3; pointer-events: none; }
 
-/* S3 — LISTEN SCREEN — split layout */
-#s3 {
-  background: var(--black);
-  justify-content: flex-start;
-  padding: 0;
-  overflow: hidden;
-}
+/* S3 — LISTEN — flex column, splits into top + bottom */
+#s3 { background: var(--black); padding: 0; justify-content: flex-start; overflow: hidden; }
 
-/* Top half — pulse area */
 .listen-top {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 100%;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   position: relative;
+  transition: flex-grow 0.6s cubic-bezier(0.4,0,0.2,1);
+  min-height: 0;
 }
-.listen-top.shrunk {
-  height: 42%;
-}
-.listen-label {
-  position: absolute;
-  top: clamp(36px, 7vh, 52px);
-  left: 32px;
-  font-size: 11px;
-  color: var(--bg);
-  opacity: 0.3;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.pulse-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
-}
-.pulse-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--bg); opacity: 0.55;
-  animation: pd 2s ease-in-out infinite;
-}
-@keyframes pd { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.5);opacity:.85} }
-.track-count {
-  font-size: 11px;
-  color: var(--bg);
-  opacity: 0.2;
-  letter-spacing: 0.18em;
-}
+.listen-top.shrunk { flex-grow: 0.7; }
 
-/* Bottom half — assign panel slides up */
+.listen-label { position: absolute; top: clamp(36px,7vh,52px); left: 32px; font-size: 11px; color: var(--bg); opacity: 0.3; letter-spacing: 0.12em; text-transform: uppercase; }
+.pulse-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bg); opacity: 0.55; animation: pd 2s ease-in-out infinite; }
+@keyframes pd { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.5);opacity:.85} }
+.track-count { font-size: 11px; color: var(--bg); opacity: 0.2; letter-spacing: 0.18em; }
+
+.listen-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.07); flex-shrink: 0; transform: scaleX(0); transition: transform 0.5s ease 0.3s; }
+.listen-divider.show { transform: scaleX(1); }
+
 .assign-panel {
   width: 100%;
+  flex-grow: 0;
   flex-shrink: 0;
-  height: 0;
   overflow: hidden;
-  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   padding: 0 32px;
+  max-height: 0;
+  transition: max-height 0.6s cubic-bezier(0.4,0,0.2,1), flex-grow 0.6s cubic-bezier(0.4,0,0.2,1);
 }
 .assign-panel.open {
-  height: 58%;
+  max-height: 65vh;
+  flex-grow: 1.3;
   overflow-y: auto;
 }
-.assign-label {
-  font-size: 11px;
-  color: var(--bg);
-  opacity: 0.4;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 24px;
-  margin-top: 28px;
-  flex-shrink: 0;
-}
-.assign-stmt {
-  width: 100%;
-  padding: 16px 0;
-  font-size: clamp(14px, 3.5vw, 17px);
-  font-weight: 400;
-  color: var(--bg);
-  line-height: 1.5;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  cursor: pointer;
-  user-select: none;
-  transition: opacity 0.15s ease;
-  flex-shrink: 0;
-}
+
+.assign-label { font-size: 11px; color: var(--bg); opacity: 0.4; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; margin-top: 24px; flex-shrink: 0; }
+.assign-stmt { width: 100%; padding: 16px 0; font-size: clamp(14px,3.5vw,17px); font-weight: 400; color: var(--bg); line-height: 1.5; border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer; user-select: none; transition: opacity 0.15s ease; flex-shrink: 0; }
 .assign-stmt:first-of-type { border-top: 1px solid rgba(255,255,255,0.08); }
 .assign-stmt.tapped { opacity: 0.3; pointer-events: none; }
 
-/* divider line between top and bottom */
-.listen-divider {
-  width: 100%;
-  height: 1px;
-  background: rgba(255,255,255,0.06);
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.4s ease 0.3s;
-}
-.listen-divider.show { opacity: 1; }
-
-/* S5 — REVEAL */
+/* S5 */
 #s5 { background: var(--bg); justify-content: center; gap: 12px; cursor: pointer; }
 .reveal-label { font-size: 11px; color: var(--black); opacity: 0.35; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
-.reveal-title { font-size: clamp(22px, 5.5vw, 34px); font-weight: 400; color: var(--black); text-align: center; letter-spacing: -0.01em; line-height: 1.2; }
-.reveal-artist { font-size: clamp(14px, 3.2vw, 17px); color: var(--black); opacity: 0.4; text-align: center; }
+.reveal-title { font-size: clamp(22px,5.5vw,34px); font-weight: 400; color: var(--black); text-align: center; letter-spacing: -0.01em; line-height: 1.2; }
+.reveal-artist { font-size: clamp(14px,3.2vw,17px); color: var(--black); opacity: 0.4; text-align: center; }
 .reveal-hint { position: absolute; bottom: clamp(72px,12vh,96px); font-size: 11px; color: var(--black); opacity: 0.2; letter-spacing: 0.1em; }
 .reveal-cta { position: absolute; bottom: clamp(36px,7vh,52px); font-size: 11px; color: var(--black); opacity: 0.18; letter-spacing: 0.12em; text-transform: uppercase; }
 
-/* S6 — EMAIL */
+/* S6 */
 #s6 { background: var(--bg); justify-content: center; }
 .email-head { font-size: clamp(30px,7vw,46px); font-weight: 400; color: var(--black); letter-spacing: -0.02em; margin-bottom: 44px; text-align: center; }
-.email-input {
-  width: 100%; max-width: 300px; font-family: var(--f); font-size: 16px;
-  color: var(--black); background: transparent; border: none;
-  border-bottom: 1px solid rgba(0,0,0,0.45); padding: 10px 0;
-  outline: none; text-align: center; border-radius: 0; -webkit-appearance: none;
-}
+.email-input { width: 100%; max-width: 300px; font-family: var(--f); font-size: 16px; color: var(--black); background: transparent; border: none; border-bottom: 1px solid rgba(0,0,0,0.45); padding: 10px 0; outline: none; text-align: center; border-radius: 0; -webkit-appearance: none; }
 .email-input::placeholder { color: var(--black); opacity: 0.22; }
-.email-sub {
-  display: block; margin: 28px auto 0; font-family: var(--f); font-size: 12px;
-  color: var(--black); background: none; border: none; cursor: pointer;
-  letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.45; padding: 10px 20px;
-}
+.email-sub { display: block; margin: 28px auto 0; font-family: var(--f); font-size: 12px; color: var(--black); background: none; border: none; cursor: pointer; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.45; padding: 10px 20px; }
 
-/* PROGRESS DOTS */
-#dots {
-  position: fixed;
-  bottom: clamp(24px, 4.5vh, 40px);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex; gap: 8px;
-  pointer-events: none;
-  opacity: 0; transition: opacity 0.4s ease;
-  z-index: 999;
-}
+/* DOTS */
+#dots { position: fixed; bottom: clamp(24px,4.5vh,40px); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; z-index: 999; }
 #dots.show { opacity: 1; }
 .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--black); opacity: 0.15; transition: opacity 0.3s ease; }
 .dot.done { opacity: 0.5; }
@@ -251,19 +112,16 @@ html, body {
   <div class="dot" id="d5"></div>
 </div>
 
-<!-- S1 ARRIVAL -->
 <div class="screen active" id="s1">
   <span class="s1-word">Today.</span>
   <span class="s1-hint">tap to begin</span>
 </div>
 
-<!-- S2 ENTRY -->
 <div class="screen" id="s2">
   <span class="screen-label">Where are you right now</span>
   <div id="entry-list"></div>
 </div>
 
-<!-- S3 LISTEN — single screen, splits in two -->
 <div class="screen" id="s3">
   <div class="listen-top" id="listen-top">
     <span class="listen-label">Listen</span>
@@ -284,7 +142,6 @@ html, body {
   </div>
 </div>
 
-<!-- S5 REVEAL -->
 <div class="screen" id="s5">
   <span class="reveal-label">That was</span>
   <div class="reveal-title" id="r-title">—</div>
@@ -293,7 +150,6 @@ html, body {
   <span class="reveal-cta">Press Play on Today.</span>
 </div>
 
-<!-- S6 EMAIL -->
 <div class="screen" id="s6">
   <div class="email-head" id="email-head">More comes.</div>
   <input class="email-input" id="email-in" type="email" placeholder="your email" autocomplete="email" autocapitalize="none">
@@ -324,30 +180,21 @@ var sess = {
   entryState: null,
   cur: 0,
   tOrder: [],
-  sOrder: [],
   listenStart: null,
   dur: 0,
   log: [],
 };
 
-// Fisher-Yates — verified correct implementation
 function shuffle(arr) {
-  var a = arr.slice();
-  var i = a.length, j, tmp;
-  while (i > 0) {
-    j = Math.floor(Math.random() * i);
-    i--;
-    tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-  }
+  var a = arr.slice(), i = a.length, j, t;
+  while (i--) { j = Math.floor(Math.random() * (i + 1)); t = a[i]; a[i] = a[j]; a[j] = t; }
   return a;
 }
 
 function show(id) {
   var all = document.querySelectorAll('.screen');
   for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
-  setTimeout(function() {
-    document.getElementById(id).classList.add('active');
-  }, 40);
+  setTimeout(function() { document.getElementById(id).classList.add('active'); }, 40);
   var dots = document.getElementById('dots');
   if (id === 's3' || id === 's5') {
     dots.classList.add('show');
@@ -367,37 +214,15 @@ function setDots(cur) {
   }
 }
 
-// Build entry statements (light bg)
-function buildEntryList(cb) {
-  var el = document.getElementById('entry-list');
+function buildList(elId, stmtClass, includeNone, cb) {
+  var el = document.getElementById(elId);
   el.innerHTML = '';
-  var order = sess.sOrder.slice();
-  for (var i = 0; i < order.length; i++) {
-    (function(s) {
-      var d = document.createElement('div');
-      d.className = 'stmt';
-      d.textContent = s.text;
-      d.addEventListener('click', function() {
-        if (d.classList.contains('tapped')) return;
-        d.classList.add('tapped');
-        var st = s.state;
-        setTimeout(function() { cb(st); }, 150);
-      });
-      el.appendChild(d);
-    })(STMTS[order[i]]);
-  }
-}
-
-// Build assign statements (dark bg, inside listen screen)
-function buildAssignList(cb) {
-  var el = document.getElementById('assign-list');
-  el.innerHTML = '';
-  // Fresh shuffle for assign — different order each track
+  // Fresh shuffle every single time this is called
   var order = shuffle([0,1,2,3,4]);
   for (var i = 0; i < order.length; i++) {
     (function(s) {
       var d = document.createElement('div');
-      d.className = 'assign-stmt';
+      d.className = stmtClass;
       d.textContent = s.text;
       d.addEventListener('click', function() {
         if (d.classList.contains('tapped')) return;
@@ -408,131 +233,100 @@ function buildAssignList(cb) {
       el.appendChild(d);
     })(STMTS[order[i]]);
   }
-  // None of these
-  var n = document.createElement('div');
-  n.className = 'assign-stmt';
-  n.textContent = 'None of these.';
-  n.addEventListener('click', function() {
-    if (n.classList.contains('tapped')) return;
-    n.classList.add('tapped');
-    setTimeout(function() { cb('None of These'); }, 150);
-  });
-  el.appendChild(n);
+  if (includeNone) {
+    var n = document.createElement('div');
+    n.className = stmtClass;
+    n.textContent = 'None of these.';
+    n.addEventListener('click', function() {
+      if (n.classList.contains('tapped')) return;
+      n.classList.add('tapped');
+      setTimeout(function() { cb('None of These'); }, 150);
+    });
+    el.appendChild(n);
+  }
 }
 
-// Open the assign panel — slides up, top half shrinks
-function openAssignPanel(cb) {
-  buildAssignList(cb);
-  var top = document.getElementById('listen-top');
-  var panel = document.getElementById('assign-panel');
-  var divider = document.getElementById('listen-divider');
-  top.classList.add('shrunk');
-  panel.classList.add('open');
-  divider.classList.add('show');
+function openPanel(cb) {
+  // Build with fresh shuffle every time
+  buildList('assign-list', 'assign-stmt', true, cb);
+  document.getElementById('listen-top').classList.add('shrunk');
+  document.getElementById('assign-panel').classList.add('open');
+  document.getElementById('listen-divider').classList.add('show');
 }
 
-// Reset listen screen back to full for next track
-function resetListenScreen() {
-  var top = document.getElementById('listen-top');
-  var panel = document.getElementById('assign-panel');
-  var divider = document.getElementById('listen-divider');
-  top.classList.remove('shrunk');
-  panel.classList.remove('open');
-  divider.classList.remove('show');
+function resetPanel() {
+  document.getElementById('listen-top').classList.remove('shrunk');
+  document.getElementById('assign-panel').classList.remove('open');
+  document.getElementById('listen-divider').classList.remove('show');
   document.getElementById('assign-list').innerHTML = '';
 }
 
-// SoundCloud
 var widget, widgetReady = false, assignTimer, autoTimer;
 
 function initSC() {
   widget = SC.Widget(document.getElementById('sc'));
   widget.bind(SC.Widget.Events.READY, function() { widgetReady = true; });
   widget.bind(SC.Widget.Events.FINISH, function() {
-    // Track finished naturally — open assign if not already open
     if (!document.getElementById('assign-panel').classList.contains('open')) {
-      openAssignPanel(function(postState) { doReveal(postState); });
+      openPanel(function(ps) { doReveal(ps); });
     }
   });
 }
 
 function playTrack(idx) {
   function go() {
-    resetListenScreen();
+    resetPanel();
     widget.skip(idx);
     setTimeout(function() { widget.play(); }, 300);
     sess.listenStart = Date.now();
     clearTimeout(assignTimer);
     clearTimeout(autoTimer);
 
-    // After 7s — slide up assign panel, music keeps playing
     assignTimer = setTimeout(function() {
-      openAssignPanel(function(postState) { doReveal(postState); });
+      openPanel(function(ps) { doReveal(ps); });
     }, 7000);
 
-    // Hard stop at 90s
     autoTimer = setTimeout(function() {
       if (widget) widget.pause();
       if (!document.getElementById('assign-panel').classList.contains('open')) {
-        openAssignPanel(function(postState) { doReveal(postState); });
+        openPanel(function(ps) { doReveal(ps); });
       }
     }, 90000);
 
     document.getElementById('tc').textContent = (sess.cur + 1) + ' — 5';
     setDots(sess.cur);
   }
-
   if (widgetReady) {
     go();
   } else {
-    var poll = setInterval(function() {
-      if (widgetReady) { clearInterval(poll); go(); }
-    }, 200);
+    var poll = setInterval(function() { if (widgetReady) { clearInterval(poll); go(); } }, 200);
   }
 }
 
-function doReveal(postState) {
+function doReveal(ps) {
   clearTimeout(assignTimer);
   clearTimeout(autoTimer);
   if (widget) widget.pause();
-
-  sess.dur = sess.listenStart
-    ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90)
-    : 0;
-
+  sess.dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90) : 0;
   var ti = sess.tOrder[sess.cur];
   var tr = TRACKS[ti] || { id:'T00'+(ti+1), title:'—', artist:'—' };
-
-  sess.log.push({
-    sessionId:  sess.id,
-    trackId:    tr.id,
-    entryState: sess.entryState,
-    postState:  postState,
-    duration:   sess.dur,
-    match:      sess.entryState === postState ? 'Yes' : 'No',
-  });
-
-  document.getElementById('r-title').textContent  = tr.title;
+  sess.log.push({ sessionId:sess.id, trackId:tr.id, entryState:sess.entryState, postState:ps, duration:sess.dur, match:sess.entryState===ps?'Yes':'No' });
+  document.getElementById('r-title').textContent = tr.title;
   document.getElementById('r-artist').textContent = tr.artist;
   show('s5');
 }
 
-// S1 tap
 document.getElementById('s1').addEventListener('click', function() {
-  // Generate fresh random orders
-  sess.sOrder = shuffle([0,1,2,3,4]);
   sess.tOrder = shuffle([0,1,2,3,4]);
-
-  buildEntryList(function(state) {
+  // Build entry list with fresh shuffle
+  buildList('entry-list', 'stmt', false, function(state) {
     sess.entryState = state;
     show('s3');
     setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 600);
   });
-
   show('s2');
 });
 
-// S5 reveal tap
 document.getElementById('s5').addEventListener('click', function() {
   sess.cur++;
   if (sess.cur < 5) {
@@ -543,20 +337,16 @@ document.getElementById('s5').addEventListener('click', function() {
   }
 });
 
-// Email
 document.getElementById('email-sub').addEventListener('click', function() {
   var email = document.getElementById('email-in').value.trim();
-  if (!email || !email.includes('@')) {
-    document.getElementById('email-in').style.borderBottomColor = 'rgba(0,0,0,0.9)';
-    return;
-  }
+  if (!email || !email.includes('@')) { document.getElementById('email-in').style.borderBottomColor = 'rgba(0,0,0,0.9)'; return; }
   document.getElementById('email-in').style.display = 'none';
   document.getElementById('email-sub').style.display = 'none';
   var h = document.getElementById('email-head');
   h.textContent = "You'll hear when something new arrives.";
   h.style.fontSize = '18px';
   h.style.opacity = '0.4';
-  console.log('FYND SESSION', JSON.stringify({ id: sess.id, email: email, entryState: sess.entryState, log: sess.log }, null, 2));
+  console.log('FYND SESSION', JSON.stringify({ id:sess.id, email:email, entryState:sess.entryState, log:sess.log }, null, 2));
 });
 
 document.getElementById('email-in').addEventListener('keydown', function(e) {
@@ -564,7 +354,6 @@ document.getElementById('email-in').addEventListener('keydown', function(e) {
 });
 
 initSC();
-
 </script>
 </body>
 </html>
