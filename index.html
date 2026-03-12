@@ -49,7 +49,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 .listen-label { position: absolute; top: clamp(36px,7vh,52px); left: 32px; font-size: 16px; color: var(--bg); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; }
 .pulse-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
 .pulse-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--bg); opacity: 0.8; animation: pd 2s ease-in-out infinite; }
-.pulse-dot.stopped { animation: none; opacity: 0.3; }
+.pulse-dot.stopped { animation: none; opacity: 0.3; transform: scale(1); transition: transform 0.3s ease, opacity 0.4s ease; }
 @keyframes pd { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.5);opacity:.85} }
 .track-count { font-size: 15px; color: var(--bg); opacity: 0.75; letter-spacing: 0.18em; }
 
@@ -270,6 +270,9 @@ function initSC() {
   widget = SC.Widget(document.getElementById('sc'));
   widget.bind(SC.Widget.Events.READY, function() { widgetReady = true; });
   widget.bind(SC.Widget.Events.FINISH, function() {
+    if (widget) widget.pause();
+    var dot = document.querySelector('.pulse-dot');
+    if (dot) dot.classList.add('stopped');
     if (!document.getElementById('assign-panel').classList.contains('open')) {
       openPanel(function(ps) { doReveal(ps); });
     }
@@ -294,6 +297,9 @@ function playTrack(idx) {
 
     autoTimer = setTimeout(function() {
       if (widget) widget.pause();
+      // Stop dot when music hits 90s
+      var dot = document.querySelector('.pulse-dot');
+      if (dot) dot.classList.add('stopped');
       if (!document.getElementById('assign-panel').classList.contains('open')) {
         openPanel(function(ps) { doReveal(ps); });
       }
