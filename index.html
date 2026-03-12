@@ -321,6 +321,13 @@ document.getElementById('s1').addEventListener('click', function() {
   // Build entry list with fresh shuffle
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
+    // Trigger play IMMEDIATELY inside user gesture so iOS allows audio
+    var idx = sess.tOrder[sess.cur];
+    if (widgetReady) {
+      widget.skip(idx);
+      widget.play();
+      sess._playedOnGesture = true;
+    }
     show('s3');
     setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 600);
   });
@@ -330,6 +337,13 @@ document.getElementById('s1').addEventListener('click', function() {
 document.getElementById('s5').addEventListener('click', function() {
   sess.cur++;
   if (sess.cur < 5) {
+    // Trigger play inside user gesture for iOS
+    var idx = sess.tOrder[sess.cur];
+    if (widgetReady) {
+      widget.skip(idx);
+      widget.play();
+      sess._playedOnGesture = true;
+    }
     show('s3');
     setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 600);
   } else {
