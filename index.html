@@ -49,6 +49,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 .listen-label { position: absolute; top: clamp(36px,7vh,52px); left: 32px; font-size: 16px; color: var(--bg); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; }
 .pulse-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
 .pulse-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--bg); opacity: 0.8; animation: pd 2s ease-in-out infinite; }
+.pulse-dot.stopped { animation: none; opacity: 0.3; }
 @keyframes pd { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.5);opacity:.85} }
 .track-count { font-size: 15px; color: var(--bg); opacity: 0.75; letter-spacing: 0.18em; }
 
@@ -278,6 +279,9 @@ function initSC() {
 function playTrack(idx) {
   function go() {
     resetPanel();
+    // Resume dot animation for new track
+    var dot = document.querySelector('.pulse-dot');
+    if (dot) dot.classList.remove('stopped');
     widget.skip(idx);
     setTimeout(function() { widget.play(); }, 300);
     sess.listenStart = Date.now();
@@ -309,6 +313,9 @@ function doReveal(ps) {
   clearTimeout(assignTimer);
   clearTimeout(autoTimer);
   if (widget) widget.pause();
+  // Stop dot animation when music stops
+  var dot = document.querySelector('.pulse-dot');
+  if (dot) dot.classList.add('stopped');
   sess.dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90) : 0;
   var ti = sess.tOrder[sess.cur];
   var tr = TRACKS[ti] || { id:'T00'+(ti+1), title:'—', artist:'—' };
