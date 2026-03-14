@@ -199,7 +199,7 @@ html.assign-top, body.assign-top { background: var(--black); }
 <!-- S1 ARRIVAL -->
 <div class="screen active" id="s1">
   <span class="s1-word">Today.</span>
-  <p class="s1-intro">Pick where you are right now.<br>Listen.<br>Then tell us where you end up.<br>That's it.</p>
+  <p class="s1-intro">Listen. Tell us where you land.<br>That's it.</p>
   <span class="s1-hint">tap to begin</span>
 </div>
 
@@ -341,32 +341,31 @@ function startDot() {
 function buildList(elId, cls, includeNone, cb) {
   var el = document.getElementById(elId);
   el.innerHTML = '';
-  var indices = [0,1,2,3,4];
-  if (includeNone) indices.push(5); // 5 = sentinel for None of these
-  var order = shuffle(indices);
+  var order = shuffle([0,1,2,3,4]);
   for (var i = 0; i < order.length; i++) {
-    (function(idx) {
+    (function(s) {
       var d = document.createElement('div');
       d.className = cls;
-      if (idx === 5) {
-        d.textContent = 'Something else entirely.';
-        d.addEventListener('click', function() {
-          if (d.classList.contains('tapped')) return;
-          d.classList.add('tapped');
-          setTimeout(function() { cb('Something Else'); }, 150);
-        });
-      } else {
-        var s = STMTS[idx];
-        d.textContent = s.text;
-        d.addEventListener('click', function() {
-          if (d.classList.contains('tapped')) return;
-          d.classList.add('tapped');
-          var st = s.state;
-          setTimeout(function() { cb(st); }, 150);
-        });
-      }
+      d.textContent = s.text;
+      d.addEventListener('click', function() {
+        if (d.classList.contains('tapped')) return;
+        d.classList.add('tapped');
+        var st = s.state;
+        setTimeout(function() { cb(st); }, 150);
+      });
       el.appendChild(d);
-    })(order[i]);
+    })(STMTS[order[i]]);
+  }
+  if (includeNone) {
+    var n = document.createElement('div');
+    n.className = cls;
+    n.textContent = 'Something else entirely.';
+    n.addEventListener('click', function() {
+      if (n.classList.contains('tapped')) return;
+      n.classList.add('tapped');
+      setTimeout(function() { cb('Something Else'); }, 150);
+    });
+    el.appendChild(n);
   }
 }
 
