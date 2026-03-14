@@ -346,11 +346,11 @@ function buildList(elId, cls, includeNone, cb) {
       var d = document.createElement('div');
       d.className = cls;
       if (idx === 5) {
-        d.textContent = 'None of these.';
+        d.textContent = 'Something else entirely.';
         d.addEventListener('click', function() {
           if (d.classList.contains('tapped')) return;
           d.classList.add('tapped');
-          setTimeout(function() { cb('None of These'); }, 150);
+          setTimeout(function() { cb('Something Else'); }, 150);
         });
       } else {
         var s = STMTS[idx];
