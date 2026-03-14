@@ -53,13 +53,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 /* Ready prompt — appears at 30s */
 .ready-prompt {
   position: absolute;
-  bottom: clamp(36px,7vh,52px);
+  bottom: clamp(80px,14vh,110px);
   left: 50%;
   transform: translateX(-50%);
-  font-size: 13px;
+  font-size: 15px;
   color: var(--bg);
   opacity: 0;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
   padding: 16px 24px;
@@ -70,7 +70,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   align-items: center;
   gap: 8px;
 }
-.ready-prompt.show { opacity: 0.5; pointer-events: all; }
+.ready-prompt.show { opacity: 0.75; pointer-events: all; animation: ph-white 3s ease-in-out infinite; }
+@keyframes ph-white { 0%,100%{opacity:.45} 50%{opacity:.85} }
 .ready-prompt-arrow { font-size: 16px; }
 
 /* ASSIGN PANEL — slides up as off-white */
@@ -182,7 +183,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 <!-- S1 ARRIVAL -->
 <div class="screen active" id="s1">
   <span class="s1-word">Today.</span>
-  <p class="s1-intro">Pick where you are right now. Listen. Then tell us where you end up.<br>That's it.</p>
+  <p class="s1-intro">Pick where you are right now.<br>Listen.<br>Then tell us where you end up.<br>That's it.</p>
   <span class="s1-hint">tap to begin</span>
 </div>
 
@@ -458,6 +459,8 @@ document.getElementById('s1').addEventListener('click', function() {
 document.getElementById('btn-continue').addEventListener('click', function() {
   sess.cur++;
   if (sess.cur < 5) {
+    // Reset panel immediately so off-white never shows during transition
+    resetPanel();
     show('s3');
     // Play on user gesture for Safari
     if (widgetReady) {
