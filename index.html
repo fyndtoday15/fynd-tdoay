@@ -9,37 +9,16 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root { --bg: #FCFBF4; --black: #000000; --f: 'DejaVu LGC Sans','DM Sans',Arial,sans-serif; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--f); -webkit-font-smoothing: antialiased; }
-/* Safe area fills */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: env(safe-area-inset-top);
-  background: var(--bg);
-  z-index: 9998;
-  transition: background 0.4s ease;
-}
-body::after {
-  content: '';
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: env(safe-area-inset-bottom);
-  background: var(--bg);
-  z-index: 9998;
-  transition: background 0.4s ease;
-}
-body.listen-mode::before { background: var(--black); }
-body.listen-mode::after { background: var(--black); }
-body.assign-mode::before { background: var(--black); }
-body.assign-mode::after { background: var(--bg); }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--f); -webkit-font-smoothing: antialiased; transition: background 0.4s ease; }
+body.listen-mode { background: var(--black); }
+body.assign-mode { background: var(--black); }
+
 
 .screen {
-  position: fixed; inset: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
   display: flex; flex-direction: column; align-items: center;
-  padding: 0 32px;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: calc(env(safe-area-inset-top) + 0px) 32px calc(env(safe-area-inset-bottom) + 0px);
   opacity: 0; pointer-events: none;
   transition: opacity 0.4s ease;
 }
@@ -60,7 +39,7 @@ body.assign-mode::after { background: var(--bg); }
 .stmt.tapped { opacity: 0.3; pointer-events: none; }
 
 /* S3 — LISTEN */
-#s3 { background: var(--black); padding: 0; justify-content: flex-start; overflow: hidden; }
+#s3 { background: var(--black); padding: 0 0 0 0; padding-top: env(safe-area-inset-top); justify-content: flex-start; overflow: hidden; }
 
 .listen-top {
   width: 100%; flex-grow: 1; flex-shrink: 1;
