@@ -69,15 +69,19 @@ html.assign-top, body.assign-top { background: var(--black); }
   text-transform: uppercase;
   cursor: pointer;
   padding: 16px 24px;
-  transition: opacity 0.8s ease;
   pointer-events: none;
   white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 8px;
+  animation: ph-white-hidden 3s ease-in-out infinite;
+  animation-play-state: paused;
 }
-.ready-prompt.show { opacity: 0.75; pointer-events: all; animation: ph-white 3s ease-in-out infinite; }
-@keyframes ph-white { 0%,100%{opacity:.45} 50%{opacity:.85} }
+.ready-prompt.show {
+  pointer-events: all;
+  animation-play-state: running;
+}
+@keyframes ph-white-hidden { 0%,100%{opacity:.45} 50%{opacity:.85} }
 .ready-prompt-arrow { font-size: 16px; }
 
 /* ASSIGN PANEL — slides up as off-white */
@@ -300,12 +304,12 @@ function show(id) {
   var sb = document.getElementById('safe-bot');
   if (id === 's3') {
     if (tc) tc.content = '#000000';
-    if (st) st.style.background = '#000000';
-    if (sb) sb.style.background = '#000000';
+    if (st) { st.style.transition = 'none'; st.style.background = '#000000'; }
+    if (sb) { sb.style.transition = 'none'; sb.style.background = '#000000'; }
   } else {
     if (tc) tc.content = '#FCFBF4';
-    if (st) st.style.background = '#FCFBF4';
-    if (sb) sb.style.background = '#FCFBF4';
+    if (st) { st.style.transition = 'none'; st.style.background = '#FCFBF4'; }
+    if (sb) { sb.style.transition = 'none'; sb.style.background = '#FCFBF4'; }
   }
 }
 
@@ -366,7 +370,7 @@ function openPanel(cb) {
   if (lbl) lbl.textContent = 'Answer';
   // Safe area: top stays black, bottom becomes off-white
   var sb = document.getElementById('safe-bot');
-  if (sb) sb.style.background = '#FCFBF4';
+  if (sb) { sb.style.transition = 'none'; sb.style.background = '#FCFBF4'; }
   // Show entry state at top of panel
   var stateEl = document.getElementById('assign-entry-state');
   if (stateEl && sess.entryState) {
@@ -393,7 +397,7 @@ function resetPanel() {
   if (lbl) lbl.textContent = 'Listen';
   // Safe area back to full black
   var sb = document.getElementById('safe-bot');
-  if (sb) sb.style.background = '#000000';
+  if (sb) { sb.style.transition = 'none'; sb.style.background = '#000000'; }
   // Restore transition after reset
   setTimeout(function() {
     panel.style.transition = '';
