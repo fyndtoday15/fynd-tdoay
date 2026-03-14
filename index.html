@@ -53,10 +53,10 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 /* Ready prompt — appears at 30s */
 .ready-prompt {
   position: absolute;
-  bottom: clamp(80px,14vh,110px);
+  bottom: clamp(120px,20vh,150px);
   left: 50%;
   transform: translateX(-50%);
-  font-size: 15px;
+  font-size: 12px;
   color: var(--bg);
   opacity: 0;
   letter-spacing: 0.12em;
@@ -149,6 +149,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   opacity: 0.35;
   padding: 8px;
   transition: opacity 0.2s ease;
+  animation: ph 3s ease-in-out infinite;
 }
 .reveal-cta { font-size: 12px; color: var(--black); opacity: 0.6; letter-spacing: 0.12em; text-transform: uppercase; }
 
@@ -351,10 +352,19 @@ function openPanel(cb) {
 }
 
 function resetPanel() {
-  document.getElementById('assign-panel').classList.remove('open');
+  var panel = document.getElementById('assign-panel');
+  // Kill transition instantly so no white flash
+  panel.style.transition = 'none';
+  panel.style.maxHeight = '0';
+  panel.classList.remove('open');
   document.getElementById('assign-list').innerHTML = '';
   document.getElementById('ready-prompt').classList.remove('show');
   document.getElementById('ready-prompt').style.pointerEvents = 'none';
+  // Restore transition after reset
+  setTimeout(function() {
+    panel.style.transition = '';
+    panel.style.maxHeight = '';
+  }, 100);
 }
 
 // SoundCloud
