@@ -99,8 +99,9 @@ html.assign-top, body.assign-top { background: var(--black); }
   border-radius: 20px 20px 0 0;
 }
 .assign-panel.open {
-  max-height: 72vh;
-  overflow-y: auto;
+  height: 58vh;
+  max-height: 58vh;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
 }
 .assign-entry-state {
@@ -370,6 +371,11 @@ function openPanel(cb) {
   // Swap listen label to Answer
   var lbl = document.querySelector('.listen-label');
   if (lbl) lbl.textContent = 'Answer';
+  // Fix Safari scroll — prevent touch events bubbling to fixed parent
+  var panel = document.getElementById('assign-panel');
+  panel.addEventListener('touchmove', function(e) {
+    e.stopPropagation();
+  }, { passive: true });
   // Safe area: top stays black, bottom becomes off-white
   var sb = document.getElementById('safe-bot');
   if (sb) { sb.style.transition = 'none'; sb.style.background = '#FCFBF4'; }
@@ -547,6 +553,17 @@ document.getElementById('email-in').addEventListener('keydown', function(e) {
 });
 
 initSC();
+
+// Prevent s3 from swallowing touchmove so assign panel can scroll on Safari
+document.getElementById('s3').addEventListener('touchmove', function(e) {
+  var panel = document.getElementById('assign-panel');
+  if (panel && panel.classList.contains('open')) {
+    // Allow scroll only inside the panel
+    if (!panel.contains(e.target)) {
+      e.preventDefault();
+    }
+  }
+}, { passive: false });
 </script>
 </body>
 </html>
