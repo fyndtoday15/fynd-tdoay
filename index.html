@@ -19,73 +19,139 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 }
 .screen.active { opacity: 1; pointer-events: all; }
 
-/* S1 */
+/* S1 — ARRIVAL */
 #s1 { background: var(--bg); justify-content: center; cursor: pointer; }
-.s1-word { font-size: clamp(52px,12vw,88px); font-weight: 400; color: var(--black); letter-spacing: -0.02em; user-select: none; }
-.s1-hint { position: absolute; bottom: 44px; font-size: 16px; color: var(--black); opacity: 0.7; letter-spacing: 0.12em; text-transform: uppercase; animation: ph 3s ease-in-out infinite; }
-@keyframes ph { 0%,100%{opacity:.15} 50%{opacity:.35} }
+.s1-word { font-size: clamp(52px,12vw,88px); font-weight: 400; color: var(--black); letter-spacing: -0.02em; user-select: none; margin-bottom: 32px; }
+.s1-intro { font-size: clamp(15px,3.8vw,18px); color: var(--black); opacity: 0.7; text-align: center; line-height: 1.6; max-width: 320px; margin-bottom: 48px; }
+.s1-hint { font-size: 15px; color: var(--black); opacity: 0.7; letter-spacing: 0.12em; text-transform: uppercase; animation: ph 3s ease-in-out infinite; }
+@keyframes ph { 0%,100%{opacity:.4} 50%{opacity:.8} }
 
-/* S2 */
+/* S2 — ENTRY */
 #s2 { background: var(--bg); justify-content: flex-start; padding-top: clamp(56px,11vh,88px); overflow-y: auto; }
 .screen-label { font-size: 15px; color: var(--black); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 40px; align-self: flex-start; }
 .stmt { width: 100%; padding: 20px 0; font-size: clamp(17px,4.2vw,20px); font-weight: 400; color: var(--black); line-height: 1.55; border-bottom: 1px solid rgba(0,0,0,0.08); cursor: pointer; user-select: none; transition: opacity 0.15s ease; }
 .stmt:first-of-type { border-top: 1px solid rgba(0,0,0,0.08); }
 .stmt.tapped { opacity: 0.3; pointer-events: none; }
 
-/* S3 — LISTEN — flex column, splits into top + bottom */
+/* S3 — LISTEN */
 #s3 { background: var(--black); padding: 0; justify-content: flex-start; overflow: hidden; }
 
 .listen-top {
-  width: 100%;
-  flex-grow: 1;
-  flex-shrink: 1;
+  width: 100%; flex-grow: 1; flex-shrink: 1;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   position: relative;
   transition: flex-grow 0.6s cubic-bezier(0.4,0,0.2,1);
   min-height: 0;
 }
-.listen-top.shrunk { flex-grow: 0.7; }
-
 .listen-label { position: absolute; top: clamp(36px,7vh,52px); left: 32px; font-size: 16px; color: var(--bg); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; }
 .pulse-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
 .pulse-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--bg); opacity: 0.8; animation: pd 2s ease-in-out infinite; }
 .pulse-dot.stopped { animation-play-state: paused; opacity: 0.3; transform: scale(1); transition: opacity 0.4s ease; }
-@keyframes pd { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.5);opacity:.85} }
+@keyframes pd { 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.5);opacity:1} }
 .track-count { font-size: 15px; color: var(--bg); opacity: 0.75; letter-spacing: 0.18em; }
 
-.listen-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.07); flex-shrink: 0; transform: scaleX(0); transition: transform 0.5s ease 0.3s; }
-.listen-divider.show { transform: scaleX(1); }
+/* Ready prompt — appears at 30s */
+.ready-prompt {
+  position: absolute;
+  bottom: clamp(36px,7vh,52px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  color: var(--bg);
+  opacity: 0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 16px 24px;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ready-prompt.show { opacity: 0.5; pointer-events: all; }
+.ready-prompt-arrow { font-size: 16px; }
 
+/* ASSIGN PANEL — slides up as off-white */
 .assign-panel {
   width: 100%;
-  flex-grow: 0;
   flex-shrink: 0;
-  overflow: hidden;
-  display: flex; flex-direction: column;
-  padding: 0 32px;
   max-height: 0;
-  transition: max-height 0.6s cubic-bezier(0.4,0,0.2,1), flex-grow 0.6s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+  background: var(--bg);
+  transition: max-height 0.6s cubic-bezier(0.4,0,0.2,1);
+  display: flex;
+  flex-direction: column;
+  padding: 0 32px;
+  border-radius: 20px 20px 0 0;
 }
 .assign-panel.open {
-  max-height: 65vh;
-  flex-grow: 1.3;
+  max-height: 72vh;
   overflow-y: auto;
 }
-
-.assign-label { font-size: 15px; color: var(--bg); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; margin-top: 24px; flex-shrink: 0; }
-.assign-stmt { width: 100%; padding: 16px 0; font-size: clamp(17px,4.2vw,20px); font-weight: 400; color: var(--bg); line-height: 1.5; border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer; user-select: none; transition: opacity 0.15s ease; flex-shrink: 0; }
-.assign-stmt:first-of-type { border-top: 1px solid rgba(255,255,255,0.08); }
+.assign-entry-state {
+  font-size: 13px;
+  color: var(--black);
+  opacity: 0.4;
+  letter-spacing: 0.08em;
+  margin-top: 28px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+.assign-label { font-size: 15px; color: var(--black); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; margin-top: 8px; flex-shrink: 0; }
+.assign-stmt { width: 100%; padding: 16px 0; font-size: clamp(17px,4.2vw,20px); font-weight: 400; color: var(--black); line-height: 1.5; border-bottom: 1px solid rgba(0,0,0,0.08); cursor: pointer; user-select: none; transition: opacity 0.15s ease; flex-shrink: 0; }
+.assign-stmt:first-of-type { border-top: 1px solid rgba(0,0,0,0.08); }
 .assign-stmt.tapped { opacity: 0.3; pointer-events: none; }
 
-/* S5 */
-#s5 { background: var(--bg); justify-content: center; gap: 12px; cursor: pointer; }
+/* S5 — REVEAL */
+#s5 { background: var(--bg); justify-content: center; gap: 12px; }
 .reveal-label { font-size: 15px; color: var(--black); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
 .reveal-title { font-size: clamp(26px,6vw,38px); font-weight: 400; color: var(--black); text-align: center; letter-spacing: -0.01em; line-height: 1.2; }
 .reveal-artist { font-size: clamp(16px,3.8vw,20px); color: var(--black); opacity: 0.65; text-align: center; }
-.reveal-hint { position: absolute; bottom: clamp(200px,28vh,240px); font-size: 14px; color: var(--black); opacity: 0.7; letter-spacing: 0.1em; animation: ph 3s ease-in-out infinite; }
-.reveal-cta { position: absolute; bottom: clamp(36px,7vh,52px); font-size: 12px; color: var(--black); opacity: 0.6; letter-spacing: 0.12em; text-transform: uppercase; animation: none; }
 
-/* S6 */
+.reveal-actions {
+  position: absolute;
+  bottom: clamp(36px,8vh,60px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 0 32px;
+}
+.btn-continue {
+  font-family: var(--f);
+  font-size: 14px;
+  color: var(--black);
+  background: none;
+  border: 1px solid rgba(0,0,0,0.25);
+  border-radius: 2px;
+  padding: 14px 40px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  width: 100%;
+  max-width: 280px;
+  transition: opacity 0.2s ease;
+  animation: ph 3s ease-in-out infinite;
+}
+.btn-stop {
+  font-family: var(--f);
+  font-size: 12px;
+  color: var(--black);
+  background: none;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  padding: 8px;
+  transition: opacity 0.2s ease;
+}
+.reveal-cta { font-size: 12px; color: var(--black); opacity: 0.6; letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* S6 — EMAIL */
 #s6 { background: var(--bg); justify-content: center; }
 .email-head { font-size: clamp(30px,7vw,46px); font-weight: 400; color: var(--black); letter-spacing: -0.02em; margin-bottom: 44px; text-align: center; }
 .email-input { width: 100%; max-width: 300px; font-family: var(--f); font-size: 16px; color: var(--black); background: transparent; border: none; border-bottom: 1px solid rgba(0,0,0,0.45); padding: 10px 0; outline: none; text-align: center; border-radius: 0; -webkit-appearance: none; }
@@ -113,46 +179,58 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   <div class="dot" id="d5"></div>
 </div>
 
+<!-- S1 ARRIVAL -->
 <div class="screen active" id="s1">
   <span class="s1-word">Today.</span>
+  <p class="s1-intro">Pick where you are right now. Listen. Then tell us where you end up.<br>That's it.</p>
   <span class="s1-hint">tap to begin</span>
 </div>
 
+<!-- S2 ENTRY -->
 <div class="screen" id="s2">
   <span class="screen-label">Where are you right now</span>
   <div id="entry-list"></div>
 </div>
 
+<!-- S3 LISTEN -->
 <div class="screen" id="s3">
   <div class="listen-top" id="listen-top">
     <span class="listen-label">Listen</span>
     <div class="pulse-wrap">
-      <div class="pulse-dot"></div>
+      <div class="pulse-dot" id="pulse-dot"></div>
       <div class="track-count" id="tc">1 — 5</div>
     </div>
+    <div class="ready-prompt" id="ready-prompt">
+      <span>Answer now</span>
+      <span class="ready-prompt-arrow">↑</span>
+    </div>
   </div>
-  <div class="listen-divider" id="listen-divider"></div>
   <div class="assign-panel" id="assign-panel">
+    <div class="assign-entry-state" id="assign-entry-state"></div>
     <div class="assign-label">Where do you sit now</div>
     <div id="assign-list"></div>
   </div>
   <div id="sc-wrap">
     <iframe id="sc" width="100%" height="166" scrolling="no" frameborder="no"
-      allow="autoplay; encrypted-media; picture-in-picture"
-      allowfullscreen
+      allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen
       src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/fynd-today/sets/mvp-1&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false">
     </iframe>
   </div>
 </div>
 
+<!-- S5 REVEAL -->
 <div class="screen" id="s5">
   <span class="reveal-label">That was</span>
   <div class="reveal-title" id="r-title">—</div>
   <div class="reveal-artist" id="r-artist">—</div>
-  <span class="reveal-hint">tap to continue</span>
-  <span class="reveal-cta">Press Play on Today.</span>
+  <div class="reveal-actions">
+    <span class="reveal-cta">Press Play on Today.</span>
+    <button class="btn-continue" id="btn-continue">Continue</button>
+    <button class="btn-stop" id="btn-stop">Stop for now</button>
+  </div>
 </div>
 
+<!-- S6 EMAIL -->
 <div class="screen" id="s6">
   <div class="email-head" id="email-head">More comes.</div>
   <input class="email-input" id="email-in" type="email" placeholder="your email" autocomplete="email" autocapitalize="none">
@@ -217,15 +295,24 @@ function setDots(cur) {
   }
 }
 
-function buildList(elId, stmtClass, includeNone, cb) {
+function stopDot() {
+  var dot = document.getElementById('pulse-dot');
+  if (dot) dot.classList.add('stopped');
+}
+
+function startDot() {
+  var dot = document.getElementById('pulse-dot');
+  if (dot) dot.classList.remove('stopped');
+}
+
+function buildList(elId, cls, includeNone, cb) {
   var el = document.getElementById(elId);
   el.innerHTML = '';
-  // Fresh shuffle every single time this is called
   var order = shuffle([0,1,2,3,4]);
   for (var i = 0; i < order.length; i++) {
     (function(s) {
       var d = document.createElement('div');
-      d.className = stmtClass;
+      d.className = cls;
       d.textContent = s.text;
       d.addEventListener('click', function() {
         if (d.classList.contains('tapped')) return;
@@ -238,7 +325,7 @@ function buildList(elId, stmtClass, includeNone, cb) {
   }
   if (includeNone) {
     var n = document.createElement('div');
-    n.className = stmtClass;
+    n.className = cls;
     n.textContent = 'None of these.';
     n.addEventListener('click', function() {
       if (n.classList.contains('tapped')) return;
@@ -250,29 +337,34 @@ function buildList(elId, stmtClass, includeNone, cb) {
 }
 
 function openPanel(cb) {
-  // Build with fresh shuffle every time
+  // Show entry state at top of panel
+  var stateEl = document.getElementById('assign-entry-state');
+  if (stateEl && sess.entryState) {
+    stateEl.textContent = 'You came in as — ' + sess.entryState;
+  }
   buildList('assign-list', 'assign-stmt', true, cb);
-  document.getElementById('listen-top').classList.add('shrunk');
+  // Hide ready prompt
+  document.getElementById('ready-prompt').classList.remove('show');
+  document.getElementById('ready-prompt').style.pointerEvents = 'none';
   document.getElementById('assign-panel').classList.add('open');
-  document.getElementById('listen-divider').classList.add('show');
 }
 
 function resetPanel() {
-  document.getElementById('listen-top').classList.remove('shrunk');
   document.getElementById('assign-panel').classList.remove('open');
-  document.getElementById('listen-divider').classList.remove('show');
   document.getElementById('assign-list').innerHTML = '';
+  document.getElementById('ready-prompt').classList.remove('show');
+  document.getElementById('ready-prompt').style.pointerEvents = 'none';
 }
 
-var widget, widgetReady = false, assignTimer, autoTimer;
+// SoundCloud
+var widget, widgetReady = false, readyTimer, autoTimer;
 
 function initSC() {
   widget = SC.Widget(document.getElementById('sc'));
   widget.bind(SC.Widget.Events.READY, function() { widgetReady = true; });
   widget.bind(SC.Widget.Events.FINISH, function() {
     if (widget) widget.pause();
-    var dot = document.querySelector('.pulse-dot');
-    if (dot) dot.classList.add('stopped');
+    stopDot();
     if (!document.getElementById('assign-panel').classList.contains('open')) {
       openPanel(function(ps) { doReveal(ps); });
     }
@@ -282,24 +374,24 @@ function initSC() {
 function playTrack(idx) {
   function go() {
     resetPanel();
-    // Resume dot animation for new track
-    var dot = document.querySelector('.pulse-dot');
-    if (dot) dot.classList.remove('stopped');
+    startDot();
     widget.skip(idx);
     setTimeout(function() { widget.play(); }, 300);
     sess.listenStart = Date.now();
-    clearTimeout(assignTimer);
+    clearTimeout(readyTimer);
     clearTimeout(autoTimer);
 
-    assignTimer = setTimeout(function() {
-      openPanel(function(ps) { doReveal(ps); });
-    }, 15000);
+    // At 30s — show subtle ready prompt
+    readyTimer = setTimeout(function() {
+      var prompt = document.getElementById('ready-prompt');
+      prompt.classList.add('show');
+      prompt.style.pointerEvents = 'all';
+    }, 30000);
 
+    // At 90s — hard open panel regardless
     autoTimer = setTimeout(function() {
       if (widget) widget.pause();
-      // Stop dot when music hits 90s
-      var dot = document.querySelector('.pulse-dot');
-      if (dot) dot.classList.add('stopped');
+      stopDot();
       if (!document.getElementById('assign-panel').classList.contains('open')) {
         openPanel(function(ps) { doReveal(ps); });
       }
@@ -315,13 +407,19 @@ function playTrack(idx) {
   }
 }
 
-function doReveal(ps) {
-  clearTimeout(assignTimer);
+// Ready prompt tap — open panel immediately
+document.getElementById('ready-prompt').addEventListener('click', function() {
   clearTimeout(autoTimer);
   if (widget) widget.pause();
-  // Stop dot animation when music stops
-  var dot = document.querySelector('.pulse-dot');
-  if (dot) dot.classList.add('stopped');
+  stopDot();
+  openPanel(function(ps) { doReveal(ps); });
+});
+
+function doReveal(ps) {
+  clearTimeout(readyTimer);
+  clearTimeout(autoTimer);
+  if (widget) widget.pause();
+  stopDot();
   sess.dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90) : 0;
   var ti = sess.tOrder[sess.cur];
   var tr = TRACKS[ti] || { id:'T00'+(ti+1), title:'—', artist:'—' };
@@ -331,20 +429,18 @@ function doReveal(ps) {
   show('s5');
 }
 
+// S1 tap
 document.getElementById('s1').addEventListener('click', function() {
-  // Shuffle first so we know which track is first
   sess.tOrder = shuffle([0,1,2,3,4]);
-  // Prime Safari: skip to actual first track and play+pause within user gesture
+  // Prime Safari audio on first gesture
   if (widgetReady) {
     widget.skip(sess.tOrder[0]);
     widget.play();
     setTimeout(function() { widget.pause(); }, 200);
   }
-  // Build entry list with fresh shuffle
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
     show('s3');
-    // Delay slightly to let Safari prime complete, then play inside gesture context
     setTimeout(function() {
       var idx = sess.tOrder[sess.cur];
       if (widgetReady) {
@@ -358,23 +454,29 @@ document.getElementById('s1').addEventListener('click', function() {
   show('s2');
 });
 
-document.getElementById('s5').addEventListener('click', function() {
+// Continue button
+document.getElementById('btn-continue').addEventListener('click', function() {
   sess.cur++;
   if (sess.cur < 5) {
-    // Trigger play inside user gesture for iOS
-    var idx = sess.tOrder[sess.cur];
+    show('s3');
+    // Play on user gesture for Safari
     if (widgetReady) {
-      widget.skip(idx);
+      widget.skip(sess.tOrder[sess.cur]);
       widget.play();
       sess._playedOnGesture = true;
     }
-    show('s3');
     setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 600);
   } else {
     show('s6');
   }
 });
 
+// Stop for now — go to email
+document.getElementById('btn-stop').addEventListener('click', function() {
+  show('s6');
+});
+
+// Email
 document.getElementById('email-sub').addEventListener('click', function() {
   var email = document.getElementById('email-in').value.trim();
   if (!email || !email.includes('@')) { document.getElementById('email-in').style.borderBottomColor = 'rgba(0,0,0,0.9)'; return; }
@@ -383,7 +485,7 @@ document.getElementById('email-sub').addEventListener('click', function() {
   var h = document.getElementById('email-head');
   h.textContent = "You'll hear when something new arrives.";
   h.style.fontSize = '18px';
-  h.style.opacity = '0.4';
+  h.style.opacity = '0.6';
   console.log('FYND SESSION', JSON.stringify({ id:sess.id, email:email, entryState:sess.entryState, log:sess.log }, null, 2));
 });
 
