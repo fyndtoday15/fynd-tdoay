@@ -1,6 +1,4 @@
 exports.handler = async function(event, context) {
-  console.log('Function invoked - method:', event.httpMethod);
-
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -17,31 +15,61 @@ exports.handler = async function(event, context) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  console.log('Body received:', event.body);
-
   const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
   const BASE_ID = 'app6jfIbr50JLlJTi';
   const TABLE_NAME = 'Sessions';
-
-  if (!AIRTABLE_API_KEY) {
-    console.error('No API key found');
-    return { statusCode: 500, body: 'Missing API key' };
-  }
+  const BASE_URL = 'https://api.airtable.com/v0/' + BASE_ID + '/' + encodeURIComponent(TABLE_NAME);
+  const HEADERS = {
+    'Authorization': 'Bearer ' + AIRTABLE_API_KEY,
+    'Content-Type': 'application/json',
+  };
 
   let data;
   try {
     data = JSON.parse(event.body);
   } catch(e) {
-    console.error('JSON parse error:', e);
     return { statusCode: 400, body: 'Invalid JSON' };
   }
 
-  console.log('Parsed data:', JSON.stringify(data));
+  // EMAIL UPDATE — find existing records by session ID and patch email
+  if (data.emailUpdate) {
+    try {
+      // Find all records with this session ID
+      const searchUrl = BASE_URL + '?filterByFormula=' + encodeURIComponent('{Session ID}="' + data.sessionId + '"');
+      const searchRes = await fetch(searchUrl, { headers: HEADERS });
+      const searchData = await searchRes.json();
 
+      if (!searchData.records || searchData.records.length === 0) {
+        return { statusCode: 200, body: JSON.stringify({ message: 'No records found for session' }) };
+      }
+
+      // Patch each record with the email
+      const patches = searchData.records.map(function(r) {
+        return { id: r.id, fields: { 'Email': data.email } };
+      });
+
+      const patchRes = await fetch(BASE_URL, {
+        method: 'PATCH',
+        headers: HEADERS,
+        body: JSON.stringify({ records: patches }),
+      });
+
+      const patchData = await patchRes.json();
+      return {
+        statusCode: 200,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ success: true, updated: patches.length }),
+      };
+    } catch(err) {
+      console.error('Email update error:', err);
+      return { statusCode: 500, body: err.toString() };
+    }
+  }
+
+  // TRACK LOG — create new record for this track assignment
   const { sessionId, email, entryState, assignments } = data;
 
   if (!assignments || assignments.length === 0) {
-    console.error('No assignments in payload');
     return { statusCode: 400, body: 'No assignments' };
   }
 
@@ -60,24 +88,14 @@ exports.handler = async function(event, context) {
     };
   });
 
-  console.log('Sending records to Airtable:', JSON.stringify(records));
-
   try {
-    const response = await fetch(
-      'https://api.airtable.com/v0/' + BASE_ID + '/' + encodeURIComponent(TABLE_NAME),
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + AIRTABLE_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ records: records }),
-      }
-    );
+    const response = await fetch(BASE_URL, {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({ records: records }),
+    });
 
     const result = await response.json();
-    console.log('Airtable response status:', response.status);
-    console.log('Airtable response:', JSON.stringify(result));
 
     if (!response.ok) {
       console.error('Airtable error:', result);
