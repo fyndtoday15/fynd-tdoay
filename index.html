@@ -543,7 +543,33 @@ document.getElementById('email-sub').addEventListener('click', function() {
   h.textContent = "You'll hear when something new arrives.";
   h.style.fontSize = '18px';
   h.style.opacity = '0.6';
-  console.log('FYND SESSION', JSON.stringify({ id:sess.id, email:email, entryState:sess.entryState, log:sess.log }, null, 2));
+  // Send session data to Netlify function -> Airtable
+  var week = 'W' + String(Math.max(1, Math.ceil((Date.now() - new Date('2026-03-15').getTime()) / (7*24*60*60*1000)))).padStart(2,'0');
+  var payload = {
+    sessionId: sess.id,
+    email: email,
+    entryState: sess.entryState,
+    assignments: sess.log.map(function(a) {
+      return {
+        trackId: a.trackId,
+        duration: a.duration,
+        postState: a.postState,
+        match: a.match,
+        week: week,
+      };
+    }),
+  };
+  fetch('/.netlify/functions/log-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then(function(r) {
+    return r.json();
+  }).then(function(result) {
+    console.log('Session logged:', result);
+  }).catch(function(err) {
+    console.error('Logging error:', err);
+  });
 });
 
 document.getElementById('email-in').addEventListener('keydown', function(e) {
