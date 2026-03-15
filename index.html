@@ -114,15 +114,7 @@ html.assign-top, body.assign-top { background: var(--black); }
     max-height: 72vh;
   }
 }
-.assign-entry-state {
-  font-size: 13px;
-  color: var(--black);
-  opacity: 0.4;
-  letter-spacing: 0.08em;
-  margin-top: 28px;
-  margin-bottom: 4px;
-  flex-shrink: 0;
-}
+
 .assign-label { font-size: 15px; color: var(--black); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; margin-top: 8px; flex-shrink: 0; }
 .assign-stmt { width: 100%; padding: 16px 0; font-size: clamp(17px,4.2vw,20px); font-weight: 400; color: var(--black); line-height: 1.5; border-bottom: 1px solid rgba(0,0,0,0.08); cursor: pointer; user-select: none; transition: opacity 0.15s ease; flex-shrink: 0; }
 .assign-stmt:first-of-type { border-top: 1px solid rgba(0,0,0,0.08); }
@@ -233,7 +225,6 @@ html.assign-top, body.assign-top { background: var(--black); }
     </div>
   </div>
   <div class="assign-panel" id="assign-panel">
-    <div class="assign-entry-state" id="assign-entry-state"></div>
     <div class="assign-label">Where do you sit now</div>
     <div id="assign-list" style="padding-bottom: 32px;"></div>
   </div>
@@ -391,11 +382,6 @@ function openPanel(cb) {
   // Safe area: top stays black, bottom becomes off-white
   var sb = document.getElementById('safe-bot');
   if (sb) { sb.style.transition = 'none'; sb.style.background = '#FCFBF4'; }
-  // Show entry state at top of panel
-  var stateEl = document.getElementById('assign-entry-state');
-  if (stateEl && sess.entryState) {
-    stateEl.textContent = 'You came in as — ' + sess.entryState;
-  }
   buildList('assign-list', 'assign-stmt', true, cb);
   // Hide ready prompt
   document.getElementById('ready-prompt').classList.remove('show');
