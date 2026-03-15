@@ -478,7 +478,22 @@ function doReveal(ps) {
   sess.dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90) : 0;
   var ti = sess.tOrder[sess.cur];
   var tr = TRACKS[ti] || { id:'T00'+(ti+1), title:'—', artist:'—' };
-  sess.log.push({ sessionId:sess.id, trackId:tr.id, entryState:sess.entryState, postState:ps, duration:sess.dur, match:sess.entryState===ps?'Yes':'No' });
+  var assignment = { sessionId:sess.id, trackId:tr.id, entryState:sess.entryState, postState:ps, duration:sess.dur, match:sess.entryState===ps?'Yes':'No' };
+  sess.log.push(assignment);
+
+  // Send this track's data immediately — don't wait for email
+  var week = 'W' + String(Math.max(1, Math.ceil((Date.now() - new Date('2026-03-15').getTime()) / (7*24*60*60*1000)))).padStart(2,'0');
+  fetch('/.netlify/functions/log-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sessionId: sess.id,
+      email: '',
+      entryState: sess.entryState,
+      assignments: [{ trackId: assignment.trackId, duration: assignment.duration, postState: assignment.postState, match: assignment.match, week: week }],
+    }),
+  }).catch(function(err) { console.error('Track log error:', err); });
+
   document.getElementById('r-title').textContent = tr.title;
   document.getElementById('r-artist').textContent = tr.artist;
   show('s5');
@@ -543,34 +558,20 @@ document.getElementById('email-sub').addEventListener('click', function() {
   h.textContent = "You'll hear when something new arrives.";
   h.style.fontSize = '18px';
   h.style.opacity = '0.6';
-  // Send session data to Netlify function -> Airtable
-  var week = 'W' + String(Math.max(1, Math.ceil((Date.now() - new Date('2026-03-15').getTime()) / (7*24*60*60*1000)))).padStart(2,'0');
-  var payload = {
-    sessionId: sess.id,
-    email: email,
-    entryState: sess.entryState,
-    assignments: sess.log.map(function(a) {
-      return {
-        trackId: a.trackId,
-        duration: a.duration,
-        postState: a.postState,
-        match: a.match,
-        week: week,
-      };
-    }),
-  };
-  console.log('Sending payload:', JSON.stringify(payload));
+  // Email submitted — update records for this session
+  // Send email update — patches all records for this session with email
   fetch('/.netlify/functions/log-session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }).then(function(r) {
-    return r.json();
-  }).then(function(result) {
-    console.log('Session logged:', result);
-  }).catch(function(err) {
-    console.error('Logging error:', err);
-  });
+    body: JSON.stringify({
+      sessionId: sess.id,
+      email: email,
+      entryState: sess.entryState,
+      emailUpdate: true,
+    }),
+  }).then(function(r) { return r.json(); })
+  .then(function(result) { console.log('Email logged:', result); })
+  .catch(function(err) { console.error('Email log error:', err); });
 });
 
 document.getElementById('email-in').addEventListener('keydown', function(e) {
