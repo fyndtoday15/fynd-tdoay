@@ -647,11 +647,18 @@ function playTrack(idx) {
   function go() {
     resetPanel();
     startDot();
-    widget.skip(idx);
-    setTimeout(function() {
+    // If this track was already primed by Safari gesture, just play
+    if (sess._primedIdx === idx) {
+      sess._primedIdx = undefined;
       widget.play();
-      setTimeout(function() { widget.play(); }, 800);
-    }, 500);
+      setTimeout(function() { widget.play(); }, 600);
+    } else {
+      widget.skip(idx);
+      setTimeout(function() {
+        widget.play();
+        setTimeout(function() { widget.play(); }, 600);
+      }, 400);
+    }
     sess.listenStart = Date.now();
     clearTimeout(readyTimer);
     clearTimeout(autoTimer);
@@ -852,36 +859,39 @@ document.getElementById('s1').addEventListener('click', function() {
     return;
   }
 
-  // Shuffle tracks if not resuming an abandoned session
-  if (!window._resumeMode) {
-    sess.tOrder = shuffle([0,1,2,3,4]);
-  }
-
-  // If resuming abandoned session — skip entry question, go straight to track
+  // If resuming abandoned session within 24hrs — skip entry, go straight to track
   if (window._resumeMode && window._resumeCur !== undefined) {
     sess.cur = window._resumeCur;
     window._resumeMode = false;
     window._resumeCur = undefined;
+    // Prime Safari even on resume — within user gesture
+    if (widgetReady) {
+      var resumeIdx = sess.tOrder[sess.cur];
+      widget.skip(resumeIdx);
+      widget.play();
+      sess._primedIdx = resumeIdx;
+      setTimeout(function() { widget.pause(); }, 80);
+    }
     show('s3');
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
     return;
   }
 
-  // Shuffle first so we know which track is first
-  if (!window._resumeMode) {
-    sess.tOrder = shuffle([0,1,2,3,4]);
-  }
-  // Prime Safari: skip to first track and play+pause within user gesture
+  // Fresh session — shuffle and prime Safari
+  sess.tOrder = shuffle([0,1,2,3,4]);
   if (widgetReady) {
-    widget.skip(sess.tOrder[0]);
+    var primeIdx = sess.tOrder[0];
+    widget.skip(primeIdx);
     widget.play();
+    sess._primedIdx = primeIdx;
     setTimeout(function() { widget.pause(); }, 80);
   }
-  // Normal flow — show entry question
+
+  // Show entry question — always shown for fresh sessions
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
     show('s3');
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
   });
   show('s2');
 });
