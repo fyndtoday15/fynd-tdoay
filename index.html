@@ -1136,20 +1136,18 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // Swap iframe src directly — same as what happens on a refresh.
-  // This is the only approach that works reliably across all mobile browsers.
+  // Swap the iframe src to load the new playlist.
+  // Do NOT set widgetReady=false — keep it true so playTrack fires immediately,
+  // exactly like the entry statement path that already works on mobile.
   var iframe = document.getElementById('sc');
   iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) +
     '&auto_play=false&hide_related=true&show_comments=false&show_user=false' +
     '&show_reposts=false&show_teaser=false&visual=false';
 
-  widgetReady = false;
+  // widgetReady stays true — playTrack goes() immediately without polling
   setTimeout(function() {
-    initSC();
-    setTimeout(function() {
-      playTrack(sess.tOrder[sess.cur]);
-    }, 500);
-  }, 800);
+    playTrack(sess.tOrder[sess.cur]);
+  }, 1000);
 }
 
 // ── RETURNING USER SYSTEM ───────────────────────────────
