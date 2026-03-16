@@ -862,10 +862,6 @@ document.getElementById('s1').addEventListener('click', function() {
   // If set screen should be restored — go there directly
   if (window._restoreSetScreen) {
     window._restoreSetScreen = false;
-    // Unlock SC widget audio context NOW inside this tap gesture.
-    // Without this, the widget.play() in loadSet fires outside any
-    // gesture window and mobile blocks it.
-    if (widget && widgetReady) { widget.play(); widget.pause(); }
     var h = document.getElementById('email-head');
     if (h) h.textContent = "You'll hear when something new arrives.";
     document.getElementById('email-in').style.display = 'none';
@@ -1092,6 +1088,16 @@ function loadSet(playlistName) {
     silentAudio3.play().catch(function(){});
   } catch(e) {}
 
+  // PRIME THE SOUNDCLOUD WIDGET ON THE SAME USER TAP
+  try {
+    if (widget && widgetReady) {
+      widget.play();
+      setTimeout(function() {
+        widget.pause();
+      }, 80);
+    }
+  } catch(e) {}
+
   // Mark this set button as used and mark as complete in localStorage
   var btns = document.querySelectorAll('.set-btn');
   btns.forEach(function(b) {
@@ -1140,19 +1146,29 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // Audio context already unlocked by widget.play() in s1 tap gesture.
-  // Now load the new playlist and play via READY event.
+  // widget.load() with auto_play:true starts playback on the new playlist.
+  // We listen for PLAY_PROGRESS (fires reliably on mobile when audio starts)
+  // to know playback is live, then skip to correct track and start timers.
   widgetReady = false;
-  widget.unbind(SC.Widget.Events.READY);
-  widget.bind(SC.Widget.Events.READY, function() {
+  var loadSetHandled = false;
+
+  widget.unbind(SC.Widget.Events.PLAY_PROGRESS);
+  widget.bind(SC.Widget.Events.PLAY_PROGRESS, function() {
+    if (loadSetHandled) return;
+    loadSetHandled = true;
+    widget.unbind(SC.Widget.Events.PLAY_PROGRESS);
+
     widgetReady = true;
-    widget.unbind(SC.Widget.Events.READY);
-    widget.bind(SC.Widget.Events.READY, function() { widgetReady = true; });
-    playTrack(sess.tOrder[sess.cur]);
+    var target = sess.tOrder[sess.cur];
+    if (target !== 0) {
+      widget.skip(target);
+      setTimeout(function() { widget.play(); }, 200);
+    }
+    startTrackTimers();
   });
 
   widget.load(url, {
-    auto_play: false,
+    auto_play: true,
     hide_related: true,
     show_comments: false,
     show_user: false,
