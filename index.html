@@ -747,7 +747,6 @@ document.getElementById('thumb-down').addEventListener('click', function() {
   sess.cur++;
   resetPanel();
   if (sess.cur < 5) {
-    // Force black on everything before transition
     document.body.style.background = '#000000';
     var s3el = document.getElementById('s3');
     if (s3el) s3el.style.background = '#000000';
@@ -756,12 +755,7 @@ document.getElementById('thumb-down').addEventListener('click', function() {
     if (stD) { stD.style.transition = 'none'; stD.style.background = '#000000'; }
     if (sbD) { sbD.style.transition = 'none'; sbD.style.background = '#000000'; }
     show('s3');
-    if (widgetReady) {
-      widget.skip(sess.tOrder[sess.cur]);
-      widget.play();
-      sess._playedOnGesture = true;
-    }
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 600);
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
   } else {
     markSetComplete(sess.playlist);
     clearAbandoned();
@@ -834,29 +828,13 @@ document.getElementById('s1').addEventListener('click', function() {
     sess.tOrder = shuffle([0,1,2,3,4]);
   }
 
-  // Prime Safari audio on first gesture using first track in order
-  if (widgetReady) {
-    widget.skip(sess.tOrder[0]);
-    widget.play();
-    setTimeout(function() { widget.pause(); }, 200);
-  }
-
   // If resuming abandoned session — skip entry question, go straight to track
-  console.log('s1 tap - resumeMode:', window._resumeMode, 'resumeCur:', window._resumeCur, 'playlist:', sess.playlist);
   if (window._resumeMode && window._resumeCur !== undefined) {
     sess.cur = window._resumeCur;
     window._resumeMode = false;
     window._resumeCur = undefined;
     show('s3');
-    setTimeout(function() {
-      var idx = sess.tOrder[sess.cur];
-      if (widgetReady) {
-        widget.skip(idx);
-        widget.play();
-        sess._playedOnGesture = true;
-      }
-      setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 400);
-    }, 250);
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
     return;
   }
 
@@ -864,15 +842,7 @@ document.getElementById('s1').addEventListener('click', function() {
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
     show('s3');
-    setTimeout(function() {
-      var idx = sess.tOrder[sess.cur];
-      if (widgetReady) {
-        widget.skip(idx);
-        widget.play();
-        sess._playedOnGesture = true;
-      }
-      setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 400);
-    }, 250);
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
   });
   show('s2');
 });
@@ -882,7 +852,6 @@ document.getElementById('btn-continue').addEventListener('click', function() {
   sess.cur++;
   if (sess.cur < 5) {
     resetPanel();
-    // Force black immediately before transition — prevents flash
     document.body.style.background = '#000000';
     var s3c = document.getElementById('s3');
     if (s3c) s3c.style.background = '#000000';
@@ -891,12 +860,7 @@ document.getElementById('btn-continue').addEventListener('click', function() {
     if (stC) { stC.style.transition = 'none'; stC.style.background = '#000000'; }
     if (sbC) { sbC.style.transition = 'none'; sbC.style.background = '#000000'; }
     show('s3');
-    if (widgetReady) {
-      widget.skip(sess.tOrder[sess.cur]);
-      widget.play();
-      sess._playedOnGesture = true;
-    }
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 600);
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
   } else {
     markSetComplete(sess.playlist);
     clearAbandoned();
@@ -1031,6 +995,8 @@ function loadSet(playlistName) {
     }
   });
   markSetComplete(playlistName);
+  // Clear email screen flag — they are starting a new session
+  LS.set('onEmailScreen', false);
 
   // Reset panel and dot immediately so s3 is clean before showing
   resetPanel();
@@ -1072,14 +1038,15 @@ function loadSet(playlistName) {
   var iframe = document.getElementById('sc');
   iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
 
-  // Reinit widget after iframe reload — wait for it to be ready
+  // Reinit widget after iframe reload
   widgetReady = false;
   setTimeout(function() {
     initSC();
+    // playTrack polls for widgetReady — safe to call immediately
     setTimeout(function() {
       playTrack(sess.tOrder[sess.cur]);
-    }, 800);
-  }, 1200);
+    }, 500);
+  }, 800);
 }
 
 // ── RETURNING USER SYSTEM ───────────────────────────────
@@ -1243,8 +1210,7 @@ if (window._restoreSetScreen) {
     if (window._nextSetPlaylist) {
       sess.playlist = window._nextSetPlaylist;
     }
-    // Clear the flag so next tap starts fresh session
-    LS.set('onEmailScreen', false);
+    // Keep onEmailScreen true so further refreshes still restore this screen
     show('s6');
   }, 150);
 }
