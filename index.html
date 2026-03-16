@@ -1060,38 +1060,40 @@ function loadSet(playlistName) {
 
   if (isMobile) {
     // ── MOBILE ──────────────────────────────────────────────────────────────
-    // Set iframe src with auto_play=true AND rebind widget — both synchronously
-    // inside the tap gesture. No setTimeout before rebind. The gesture window
-    // must still be open when SC.Widget() is called so the READY event fires
-    // with audio permission already granted.
+    // Set iframe src with auto_play=true synchronously in the tap gesture.
+    // Do NOT call SC.Widget() immediately — that interrupts the loading iframe.
+    // Instead, let it load and autoplay freely, then rebind after it's running.
     var iframeM = document.getElementById('sc');
     iframeM.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) +
       '&auto_play=true&hide_related=true&show_comments=false&show_user=false' +
       '&show_reposts=false&show_teaser=false&visual=false';
 
-    // Rebind immediately — no setTimeout — still inside the gesture
     widgetReady = false;
-    widget = SC.Widget(iframeM);
 
-    widget.bind(SC.Widget.Events.READY, function() {
-      widgetReady = true;
-      var target = sess.tOrder[0];
-      if (target !== 0) {
-        widget.skip(target);
-        setTimeout(function() { widget.play(); }, 200);
-      }
-      startTrackTimers();
-    });
-
-    widget.bind(SC.Widget.Events.FINISH, function() {
-      if (widget) widget.pause();
-      stopDot();
-      document.getElementById('thumbs-wrap').classList.remove('show');
-      clearTimeout(thumbsTimer);
-      if (!document.getElementById('assign-panel').classList.contains('open')) {
-        openPanel(function(ps) { doReveal(ps); });
-      }
-    });
+    // Wait for iframe to load before rebinding — enough time for the player
+    // to initialize but not so long that the first track has ended
+    setTimeout(function() {
+      widget = SC.Widget(iframeM);
+      widget.bind(SC.Widget.Events.READY, function() {
+        widgetReady = true;
+        var target = sess.tOrder[0];
+        if (target !== 0) {
+          // auto_play started track 0 — skip to correct shuffled track
+          widget.skip(target);
+          setTimeout(function() { widget.play(); }, 200);
+        }
+        startTrackTimers();
+      });
+      widget.bind(SC.Widget.Events.FINISH, function() {
+        if (widget) widget.pause();
+        stopDot();
+        document.getElementById('thumbs-wrap').classList.remove('show');
+        clearTimeout(thumbsTimer);
+        if (!document.getElementById('assign-panel').classList.contains('open')) {
+          openPanel(function(ps) { doReveal(ps); });
+        }
+      });
+    }, 1500);
   } else {
     // ── DESKTOP ─────────────────────────────────────────────────────────────
     // Swap iframe src — exactly as confirmed working on desktop.
