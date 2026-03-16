@@ -428,12 +428,33 @@ function show(id) {
   if (s3) s3.style.background = '#000000';
 
   var all = document.querySelectorAll('.screen');
-  for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
 
-  setTimeout(function() {
-    var next = document.getElementById(id);
-    if (next) next.classList.add('active');
-  }, 300);
+  if (isBlack) {
+    // Cut to black instantly — no fade, prevents any off-white bleed
+    for (var i = 0; i < all.length; i++) {
+      all[i].style.transition = 'none';
+      all[i].classList.remove('active');
+    }
+    var nextEl = document.getElementById(id);
+    if (nextEl) {
+      nextEl.style.transition = 'none';
+      nextEl.classList.add('active');
+    }
+    // Restore transitions after cut
+    setTimeout(function() {
+      var screens = document.querySelectorAll('.screen');
+      for (var j = 0; j < screens.length; j++) {
+        screens[j].style.transition = '';
+      }
+    }, 50);
+  } else {
+    // Normal fade for off-white screens
+    for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
+    setTimeout(function() {
+      var next = document.getElementById(id);
+      if (next) next.classList.add('active');
+    }, 40);
+  }
 
   var dots = document.getElementById('dots');
   if (id === 's3' || id === 's5') {
