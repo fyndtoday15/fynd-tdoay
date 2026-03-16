@@ -1136,12 +1136,18 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // widget.load() with auto_play:true — initiated in the tap gesture so
-  // mobile browsers permit playback. READY fires when the new playlist
-  // is loaded — that is the correct hook, not the unsupported 'callback'.
+  // widget.load() with auto_play:true starts playback on the new playlist.
+  // We listen for PLAY_PROGRESS (fires reliably on mobile when audio starts)
+  // to know playback is live, then skip to correct track and start timers.
   widgetReady = false;
-  widget.unbind(SC.Widget.Events.READY);
-  widget.bind(SC.Widget.Events.READY, function() {
+  var loadSetHandled = false;
+
+  widget.unbind(SC.Widget.Events.PLAY_PROGRESS);
+  widget.bind(SC.Widget.Events.PLAY_PROGRESS, function() {
+    if (loadSetHandled) return;
+    loadSetHandled = true;
+    widget.unbind(SC.Widget.Events.PLAY_PROGRESS);
+
     widgetReady = true;
     var target = sess.tOrder[sess.cur];
     if (target !== 0) {
@@ -1149,10 +1155,8 @@ function loadSet(playlistName) {
       setTimeout(function() { widget.play(); }, 200);
     }
     startTrackTimers();
-    // Restore normal READY handler for the rest of the session
-    widget.unbind(SC.Widget.Events.READY);
-    widget.bind(SC.Widget.Events.READY, function() { widgetReady = true; });
   });
+
   widget.load(url, {
     auto_play: true,
     hide_related: true,
