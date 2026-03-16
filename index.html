@@ -863,7 +863,7 @@ document.getElementById('s1').addEventListener('click', function() {
   if (window._restoreSetScreen) {
     window._restoreSetScreen = false;
     var h = document.getElementById('email-head');
-    if (h) h.textContent = "You'll hear when something new arrives.";
+    if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
     document.getElementById('email-in').style.display = 'none';
     document.getElementById('name-in').style.display = 'none';
     document.getElementById('email-sub').style.display = 'none';
@@ -877,7 +877,7 @@ document.getElementById('s1').addEventListener('click', function() {
   // All sets complete — show waiting screen
   if (window._allSetsComplete) {
     var h = document.getElementById('email-head');
-    if (h) h.textContent = "You'll hear when something new arrives.";
+    if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
     document.getElementById('email-in').style.display = 'none';
     document.getElementById('name-in').style.display = 'none';
     document.getElementById('email-sub').style.display = 'none';
@@ -919,6 +919,12 @@ document.getElementById('s1').addEventListener('click', function() {
     silentAudio.volume = 0;
     silentAudio.play().catch(function(){});
   } catch(e) {}
+
+  // Pre-position widget on first track without playing — no audible effect
+  if (widgetReady) {
+    widget.skip(sess.tOrder[0]);
+    sess._primedIdx = sess.tOrder[0];
+  }
 
   // Show entry question
   buildList('entry-list', 'stmt', true, function(state) {
@@ -986,7 +992,7 @@ document.getElementById('recap-continue').addEventListener('click', function() {
 
     // Show brief confirmation then listen again
     var h = document.getElementById('email-head');
-    if (h) h.textContent = "You'll hear when something new arrives.";
+    if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
     document.getElementById('email-in').style.display = 'none';
     document.getElementById('name-in').style.display = 'none';
     document.getElementById('email-sub').style.display = 'none';
