@@ -180,25 +180,20 @@ html.assign-top, body.assign-top { background: var(--black); }
 
 /* S6 — EMAIL */
 #s6 { background: var(--bg); justify-content: center; }
-.legal-line {
+.legal-corner {
   position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px;
+  bottom: clamp(24px,4.5vh,40px);
+  right: 16px;
+  font-size: 8px;
   color: var(--bg);
   opacity: 0.2;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  text-align: center;
+  letter-spacing: 0.03em;
+  text-align: right;
   pointer-events: none;
-  width: 100%;
-  padding: 0 16px;
+  max-width: 140px;
+  line-height: 1.4;
 }
-#s5 .legal-line {
-  color: var(--black);
-}
-.legal-line a { pointer-events: all; }
+.legal-corner a { pointer-events: all; color: inherit; text-decoration: none; }
 
 .set-btn { font-family: var(--f); font-size: 13px; color: var(--black); background: none; border: 2px solid var(--black); border-radius: 2px; padding: 10px 20px; margin: 4px; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; opacity: 1; transition: opacity 0.2s ease; }
 .set-btn:active { opacity: 0.6; }
@@ -276,6 +271,7 @@ html.assign-top, body.assign-top { background: var(--black); }
 <div class="screen" id="s3">
   <div class="listen-top" id="listen-top">
     <span class="listen-label">Listen</span>
+    <div class="legal-corner">Music streamed via <a href="https://soundcloud.com/fynd-today" target="_blank" style="color:inherit;text-decoration:none;">SoundCloud</a>. All rights belong to their respective owners. No commercial use.</div>
     <div class="pulse-wrap">
       <div class="pulse-dot" id="pulse-dot"></div>
       <div class="track-count" id="tc">1 — 5</div>
@@ -293,7 +289,6 @@ html.assign-top, body.assign-top { background: var(--black); }
     <div class="assign-label">While this plays —</div>
     <div id="assign-list" style="padding-bottom: 32px;"></div>
   </div>
-  <div class="legal-line" id="legal-listen">Music streamed via <a href="https://soundcloud.com/fynd-today" target="_blank" style="color:inherit;text-decoration:none;">SoundCloud</a>. All rights belong to their respective owners. No commercial use.</div>
   <div id="sc-wrap">
     <iframe id="sc" width="100%" height="166" scrolling="no" frameborder="no"
       allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen
@@ -309,7 +304,6 @@ html.assign-top, body.assign-top { background: var(--black); }
   <div class="reveal-artist" id="r-artist">—</div>
   <div class="reveal-actions">
     <span class="reveal-cta">Press Play on Today.</span>
-  <div class="legal-line">Music streamed via <a href="https://soundcloud.com/fynd-today" target="_blank" style="color:inherit;text-decoration:none;">SoundCloud</a>. All rights belong to their respective owners. No commercial use.</div>
     <button class="btn-continue" id="btn-continue">Continue</button>
     <button class="btn-stop" id="btn-stop">Stop for now</button>
   </div>
