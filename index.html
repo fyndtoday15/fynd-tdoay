@@ -643,6 +643,38 @@ function initSC() {
   });
 }
 
+function startTrackTimers() {
+  // Set up timers and UI for current track without triggering play
+  // Used after loadSet auto_play handles the actual audio start
+  resetPanel();
+  startDot();
+  sess.listenStart = Date.now();
+  clearTimeout(readyTimer);
+  clearTimeout(autoTimer);
+  clearTimeout(thumbsTimer);
+  thumbsTimer = setTimeout(function() {
+    document.getElementById('thumbs-wrap').classList.add('show');
+  }, 5000);
+  readyTimer = setTimeout(function() {
+    var prompt = document.getElementById('ready-prompt');
+    prompt.classList.add('show');
+    prompt.style.pointerEvents = 'all';
+  }, 30000);
+  autoTimer = setTimeout(function() {
+    if (widget) widget.pause();
+    stopDot();
+    document.getElementById('thumbs-wrap').classList.remove('show');
+    clearTimeout(thumbsTimer);
+    if (!document.getElementById('assign-panel').classList.contains('open')) {
+      openPanel(function(ps) { doReveal(ps); });
+    }
+  }, 90000);
+  saveAbandoned();
+  if (sess.cur > 4) sess.cur = 0;
+  document.getElementById('tc').textContent = (sess.cur + 1) + ' — 5';
+  setDots(sess.cur);
+}
+
 function playTrack(idx) {
   function go() {
     resetPanel();
@@ -1113,21 +1145,22 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
   var iframe = document.getElementById('sc');
-  iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
+  // Use auto_play=true so Safari allows audio when iframe loads
+  // Safari permits autoplay in iframes after the user has interacted with the page
+  iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) + '&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
 
-  // Reinit widget after iframe reload
-  // Reset ready state and rebind — playTrack polls until ready
   widgetReady = false;
   setTimeout(function() {
-    // Rebind widget to new iframe src
     widget = SC.Widget(document.getElementById('sc'));
     widget.bind(SC.Widget.Events.READY, function() {
       widgetReady = true;
-      // Pre-position widget on target track — no play/pause needed
-      // silent audio unlocked on the set button tap gesture
-      widget.skip(sess.tOrder[sess.cur]);
-      sess._primedIdx = sess.tOrder[sess.cur];
-      playTrack(sess.tOrder[sess.cur]);
+      // Widget auto-started — skip to shuffled first track if needed
+      var target = sess.tOrder[sess.cur];
+      if (target !== 0) {
+        widget.skip(target);
+      }
+      // Start all the playTrack timers without calling play again
+      startTrackTimers();
     });
     widget.bind(SC.Widget.Events.FINISH, function() {
       if (widget) widget.pause();
