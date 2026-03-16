@@ -811,6 +811,7 @@ document.getElementById('s1').addEventListener('click', function() {
   }
 
   // If resuming abandoned session — skip entry question, go straight to track
+  console.log('s1 tap - resumeMode:', window._resumeMode, 'resumeCur:', window._resumeCur, 'playlist:', sess.playlist);
   if (window._resumeMode && window._resumeCur !== undefined) {
     sess.cur = window._resumeCur;
     window._resumeMode = false;
@@ -991,13 +992,14 @@ function updateSetButtons() {
 }
 
 function loadSet(playlistName) {
-  // Mark this set button as used
+  // Mark this set button as used and mark as complete in localStorage
   var btns = document.querySelectorAll('.set-btn');
   btns.forEach(function(b) {
     if (b.textContent.trim() === setLabel(playlistName)) {
       b.classList.add('used');
     }
   });
+  markSetComplete(playlistName);
 
   // Reset panel and dot immediately so s3 is clean before showing
   resetPanel();
@@ -1148,6 +1150,7 @@ function initUserState() {
     : null;
 
   var onEmailScreen = LS.get('onEmailScreen');
+  console.log('initUserState - returning:', returning, 'abandoned:', abandoned, 'onEmailScreen:', onEmailScreen, 'nextSet:', nextSet);
 
   if (returning) {
     // Check for abandoned session first
