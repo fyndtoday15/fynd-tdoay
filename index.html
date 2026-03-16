@@ -179,8 +179,9 @@ html.assign-top, body.assign-top { background: var(--black); }
 
 /* S6 — EMAIL */
 #s6 { background: var(--bg); justify-content: center; }
-.set-btn { font-family: var(--f); font-size: 13px; color: var(--black); background: none; border: 1px solid rgba(0,0,0,0.2); border-radius: 2px; padding: 10px 20px; margin: 4px; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; transition: opacity 0.2s ease; }
-.set-btn:active { opacity: 1; }
+.set-btn { font-family: var(--f); font-size: 13px; color: var(--black); background: none; border: 2px solid var(--black); border-radius: 2px; padding: 10px 20px; margin: 4px; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; opacity: 1; transition: opacity 0.2s ease; }
+.set-btn:active { opacity: 0.6; }
+.set-btn.used { opacity: 0.25; pointer-events: none; border-color: rgba(0,0,0,0.25); cursor: default; }
 .email-head { font-size: clamp(30px,7vw,46px); font-weight: 400; color: var(--black); letter-spacing: -0.02em; margin-bottom: 44px; text-align: center; }
 .email-input { width: 100%; max-width: 300px; font-family: var(--f); font-size: 16px; color: var(--black); background: transparent; border: none; border-bottom: 1px solid rgba(0,0,0,0.45); padding: 10px 0; outline: none; text-align: center; border-radius: 0; -webkit-appearance: none; }
 .email-input::placeholder { color: var(--black); opacity: 0.22; }
@@ -651,7 +652,8 @@ document.getElementById('btn-continue').addEventListener('click', function() {
     }
     setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 600);
   } else {
-    show('s6');
+    buildRecap();
+    show('s7');
   }
 });
 
@@ -686,6 +688,7 @@ document.getElementById('email-sub').addEventListener('click', function() {
     body: JSON.stringify({
       sessionId: sess.id,
       email: email,
+      firstName: firstName,
       entryState: sess.entryState,
       emailUpdate: true,
     }),
@@ -699,7 +702,25 @@ document.getElementById('email-in').addEventListener('keydown', function(e) {
 });
 
 
+function setLabel(playlistName) {
+  var labels = {
+    'MVP 1.2': 'Set 2',
+    'MVP 1.3': 'Set 3',
+    'MVP 1.4': 'Set 4',
+    'MVP 1.5': 'Set 5',
+  };
+  return labels[playlistName] || '';
+}
+
 function loadSet(playlistName) {
+  // Mark this set button as used
+  var btns = document.querySelectorAll('.set-btn');
+  btns.forEach(function(b) {
+    if (b.textContent.trim() === setLabel(playlistName)) {
+      b.classList.add('used');
+    }
+  });
+
   // Reset session for new set
   sess.cur = 0;
   sess.tOrder = shuffle([0,1,2,3,4]);
