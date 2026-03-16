@@ -1136,9 +1136,25 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // Use widget.load() with auto_play:true — Safari allows this because
-  // the load() call is initiated synchronously within the user gesture
+  // widget.load() with auto_play:true — called synchronously in the tap gesture.
+  // After load completes, READY fires and we skip to the correct shuffled track.
   widgetReady = false;
+
+  // Unbind previous READY to avoid duplicates, then bind fresh
+  widget.unbind(SC.Widget.Events.READY);
+  widget.bind(SC.Widget.Events.READY, function() {
+    widgetReady = true;
+    var target = sess.tOrder[sess.cur];
+    if (target !== 0) {
+      widget.skip(target);
+      setTimeout(function() { widget.play(); }, 200);
+    }
+    startTrackTimers();
+    // Rebind READY back to normal initSC handler for subsequent tracks
+    widget.unbind(SC.Widget.Events.READY);
+    widget.bind(SC.Widget.Events.READY, function() { widgetReady = true; });
+  });
+
   widget.load(url, {
     auto_play: true,
     hide_related: true,
@@ -1146,19 +1162,6 @@ function loadSet(playlistName) {
     show_user: false,
     show_reposts: false,
     show_teaser: false,
-    callback: function() {
-      widgetReady = true;
-      var target = sess.tOrder[sess.cur];
-      // Skip to correct shuffled track if not track 0
-      if (target !== 0) {
-        widget.skip(target);
-        setTimeout(function() {
-          widget.play();
-        }, 200);
-      }
-      // Start session timers
-      startTrackTimers();
-    }
   });
 }
 
