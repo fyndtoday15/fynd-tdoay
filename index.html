@@ -608,6 +608,8 @@ function initSC() {
   widget.bind(SC.Widget.Events.FINISH, function() {
     if (widget) widget.pause();
     stopDot();
+    document.getElementById('thumbs-wrap').classList.remove('show');
+    clearTimeout(thumbsTimer);
     if (!document.getElementById('assign-panel').classList.contains('open')) {
       openPanel(function(ps) { doReveal(ps); });
     }
@@ -643,6 +645,9 @@ function playTrack(idx) {
     autoTimer = setTimeout(function() {
       if (widget) widget.pause();
       stopDot();
+      // Hide thumbs when panel auto-opens at 90s
+      document.getElementById('thumbs-wrap').classList.remove('show');
+      clearTimeout(thumbsTimer);
       if (!document.getElementById('assign-panel').classList.contains('open')) {
         openPanel(function(ps) { doReveal(ps); });
       }
