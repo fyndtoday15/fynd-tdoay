@@ -1117,10 +1117,11 @@ function markSetComplete(playlistName) {
 
 function saveAbandoned() {
   if (sess.cur === 0 && !sess.listenStart) return;
+  var curToSave = Math.min(sess.cur, 4); // never save cur > 4
   LS.set('abandoned', {
     sessionId: sess.id,
     playlist: sess.playlist,
-    cur: sess.cur,
+    cur: curToSave,
     tOrder: sess.tOrder,
     entryState: sess.entryState,
     timestamp: Date.now(),
@@ -1214,15 +1215,39 @@ function initUserState() {
   if (savedEmail) window._savedEmail = savedEmail;
   if (savedName) window._savedName = savedName;
 
-  // If refreshed on email/set-buttons screen — clear it so next tap goes to next set
+  // If refreshed on email/set-buttons screen — restore that screen
   if (onEmailScreen) {
-    LS.set('onEmailScreen', false);
+    window._restoreSetScreen = true;
+    window._nextSetPlaylist = nextSet;
   }
 }
 
 initUserState();
 
 initSC();
+
+// If refreshed on set-buttons screen — show it directly
+if (window._restoreSetScreen) {
+  setTimeout(function() {
+    var h = document.getElementById('email-head');
+    if (h) h.textContent = "You'll hear when something new arrives.";
+    document.getElementById('email-in').style.display = 'none';
+    document.getElementById('name-in').style.display = 'none';
+    document.getElementById('email-sub').style.display = 'none';
+    var again = document.getElementById('listen-again');
+    if (again) {
+      again.style.display = 'block';
+      updateSetButtons();
+    }
+    // Update sess.playlist to next available set
+    if (window._nextSetPlaylist) {
+      sess.playlist = window._nextSetPlaylist;
+    }
+    // Clear the flag so next tap starts fresh session
+    LS.set('onEmailScreen', false);
+    show('s6');
+  }, 150);
+}
 
 
 // Capture partial listen if tab closed mid-session if tab closed mid-session
