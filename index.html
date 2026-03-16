@@ -806,10 +806,20 @@ function doReveal(ps) {
 
 // S1 tap
 document.getElementById('s1').addEventListener('click', function() {
-  // Unlock Safari audio context within user gesture — synchronous
-  if (widget) {
-    try { widget.play(); setTimeout(function() { widget.pause(); }, 50); } catch(e) {}
-  }
+  // Unlock Web Audio API on user gesture for Safari
+  // This primes the audio context without touching the SC widget
+  try {
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) {
+      var ctx = new AudioContext();
+      var buf = ctx.createBuffer(1, 1, 22050);
+      var src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+      ctx.close();
+    }
+  } catch(e) {}
 
   // Mark as returning for future visits
   markReturning();
