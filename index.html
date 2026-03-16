@@ -429,8 +429,12 @@ function show(id) {
 
   var all = document.querySelectorAll('.screen');
 
-  if (isBlack) {
-    // Cut to black instantly — no fade, prevents any off-white bleed
+  // Check if current active screen is black (s3)
+  var currentActive = document.querySelector('.screen.active');
+  var currentIsBlack = currentActive && currentActive.id === 's3';
+
+  if (isBlack || currentIsBlack) {
+    // Cut instantly in both directions when s3 is involved — no fade
     for (var i = 0; i < all.length; i++) {
       all[i].style.transition = 'none';
       all[i].classList.remove('active');
@@ -448,7 +452,7 @@ function show(id) {
       }
     }, 50);
   } else {
-    // Normal fade for off-white screens
+    // Normal fade between off-white screens
     for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
     setTimeout(function() {
       var next = document.getElementById(id);
@@ -644,6 +648,8 @@ function playTrack(idx) {
       }
     }, 90000);
 
+    // Cap cur to valid range 0-4
+    if (sess.cur > 4) sess.cur = 0;
     document.getElementById('tc').textContent = (sess.cur + 1) + ' — 5';
     setDots(sess.cur);
   }
@@ -869,6 +875,7 @@ document.getElementById('btn-stop').addEventListener('click', function() {
 
 // Recap continue -> email (skip if already have email)
 document.getElementById('recap-continue').addEventListener('click', function() {
+  updateSetButtons();
   var savedEmail = LS.get('email');
   if (savedEmail) {
     // Already have their info — log the set completion with saved details
@@ -917,7 +924,10 @@ document.getElementById('email-sub').addEventListener('click', function() {
   h.style.opacity = '0.6';
   // Show listen again button immediately with confirmation
   var again = document.getElementById('listen-again');
-  if (again) again.style.display = 'block';
+  if (again) {
+    again.style.display = 'block';
+    updateSetButtons();
+  }
   // Email submitted — update records for this session
   // Send email update — patches all records for this session with email
   fetch('/.netlify/functions/log-session', {
@@ -950,6 +960,26 @@ function setLabel(playlistName) {
   return labels[playlistName] || '';
 }
 
+function updateSetButtons() {
+  var completed = LS.get('completedSets') || [];
+  var playlistByLabel = {
+    'Set 2': 'MVP 1.2',
+    'Set 3': 'MVP 1.3',
+    'Set 4': 'MVP 1.4',
+    'Set 5': 'MVP 1.5',
+  };
+  var btns = document.querySelectorAll('.set-btn');
+  btns.forEach(function(b) {
+    var label = b.textContent.trim();
+    var playlist = playlistByLabel[label];
+    if (playlist && completed.indexOf(playlist) !== -1) {
+      b.classList.add('used');
+    } else {
+      b.classList.remove('used');
+    }
+  });
+}
+
 function loadSet(playlistName) {
   // Mark this set button as used
   var btns = document.querySelectorAll('.set-btn');
@@ -969,12 +999,17 @@ function loadSet(playlistName) {
   if (stL) { stL.style.transition = 'none'; stL.style.background = '#000000'; }
   if (sbL) { sbL.style.transition = 'none'; sbL.style.background = '#000000'; }
 
-  // Reset session for new set
+  // Full clean session reset
   sess.cur = 0;
   sess.tOrder = shuffle([0,1,2,3,4]);
   sess.log = [];
   sess.listenStart = null;
+  sess.dur = 0;
+  sess.reaction = '';
+  sess.entryState = null;
   sess.id = 'S' + Date.now().toString(36).toUpperCase();
+  window._resumeMode = false;
+  window._resumeCur = undefined;
 
   // Show s3 immediately so person sees black screen right away
   show('s3');
@@ -1034,6 +1069,7 @@ function markSetComplete(playlistName) {
     completed.push(playlistName);
     LS.set('completedSets', completed);
   }
+  updateSetButtons();
 }
 
 function saveAbandoned() {
