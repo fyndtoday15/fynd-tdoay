@@ -250,6 +250,14 @@ html.assign-top, body.assign-top { background: var(--black); }
 </style>
 </head>
 <body>
+<script>
+// Prevent listen-screen flash during pendingSet reload
+try {
+  if (localStorage.getItem('fynd_pendingSet')) {
+    document.documentElement.style.background = '#FCFBF4';
+  }
+} catch(e) {}
+</script>
 
 <div id="safe-top" style="position:fixed;top:0;left:0;right:0;height:max(env(safe-area-inset-top),50px);background:#FCFBF4;z-index:9999;"></div>
 <div id="safe-bot" style="position:fixed;bottom:0;left:0;right:0;height:max(env(safe-area-inset-bottom),34px);background:#FCFBF4;z-index:9999;"></div>
@@ -313,7 +321,7 @@ html.assign-top, body.assign-top { background: var(--black); }
       'MVP 1.5': 'https://soundcloud.com/fynd-today/sets/mvp-1-5',
     };
     try {
-      // pendingSet — set button was tapped, page reloaded, load correct playlist src
+      // pendingSet — set button tapped, reload happened, load correct playlist
       var pending = JSON.parse(localStorage.getItem('fynd_pendingSet'));
       if (pending && URLS[pending]) {
         var iframe = document.getElementById('sc');
@@ -323,7 +331,6 @@ html.assign-top, body.assign-top { background: var(--black); }
         return;
       }
       // Only preload correct src for abandoned session resume
-      // initUserState handles all other routing
       var abandoned = JSON.parse(localStorage.getItem('fynd_abandoned'));
       var onEmail = JSON.parse(localStorage.getItem('fynd_onEmailScreen'));
       if (abandoned && !onEmail && abandoned.playlist && abandoned.timestamp && (Date.now() - abandoned.timestamp < 86400000)) {
@@ -896,6 +903,15 @@ document.getElementById('s1').addEventListener('click', function() {
     return;
   }
 
+  // pendingSet reload — skip entry question, go straight to listen
+  if (window._skipEntry) {
+    window._skipEntry = false;
+    sess.tOrder = shuffle([0,1,2,3,4]);
+    show('s3');
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
+    return;
+  }
+
   // If resuming abandoned session within 24hrs — skip entry, go straight to track
   if (window._resumeMode && window._resumeCur !== undefined) {
     sess.cur = window._resumeCur;
@@ -1145,7 +1161,9 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // Save chosen playlist and reload — same path as manual refresh which works perfectly.
+  // Save chosen playlist and reload — identical path to manual refresh.
+  // On reload the inline script sets correct iframe src before SC API loads,
+  // initUserState reads pendingSet and routes straight to listen on tap.
   LS.set('pendingSet', playlistName);
   window.location.reload();
 }
@@ -1290,14 +1308,15 @@ function initUserState() {
   // 1. onEmailScreen flag is set (same browser, same tab)
   // 2. Returning user with completed sets and no abandoned session (new tab or new browser session)
   var completedSetsCheck = LS.get('completedSets') || [];
-  // If a pendingSet reload just happened, go straight to listen — not the set screen
+  // pendingSet: set button was tapped, page reloaded — skip restoreSetScreen
+  // and skip entry question, go straight to listen on tap
   var pendingSet = LS.get('pendingSet');
   if (pendingSet) {
     LS.set('pendingSet', null);
     sess.playlist = pendingSet;
     window._resumeMode = false;
     window._restoreSetScreen = false;
-    // Don't set shouldRestore — go straight to Today. -> listen flow
+    window._skipEntry = true; // skip entry question — already answered within 24hrs
   } else {
     var shouldRestore = onEmailScreen || (returning && completedSetsCheck.length > 0 && !abandoned);
     if (shouldRestore) {
