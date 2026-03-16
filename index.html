@@ -1136,16 +1136,14 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // The audio context may never have been unlocked (e.g. returning user
-  // who went straight to s6 without ever triggering widget.play()).
-  // Call widget.play() synchronously RIGHT NOW inside this tap gesture
-  // to unlock it — then immediately pause so nothing audible happens.
-  // After that, load the new playlist and play for real.
-  if (widgetReady) {
-    widget.play();
-    setTimeout(function() { widget.pause(); }, 50);
-  }
+  // Unlock audio context synchronously inside this tap gesture.
+  // Returning users go straight to s6 from Today tap — widget.play()
+  // is never called before this, so audio is locked on mobile.
+  // Calling widget.play() here unlocks it. widget.load() immediately
+  // overwrites the playlist so the old track never audibly plays.
+  if (widgetReady) { widget.play(); }
 
+  // Load new playlist — READY fires when done, then playTrack plays cleanly.
   widgetReady = false;
   widget.unbind(SC.Widget.Events.READY);
   widget.bind(SC.Widget.Events.READY, function() {
