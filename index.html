@@ -1136,17 +1136,22 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // Load new playlist. When READY fires, call playTrack exactly as the
-  // entry statement path does — that path already works on mobile.
-  widgetReady = false;
+  // The audio context may never have been unlocked (e.g. returning user
+  // who went straight to s6 without ever triggering widget.play()).
+  // Call widget.play() synchronously RIGHT NOW inside this tap gesture
+  // to unlock it — then immediately pause so nothing audible happens.
+  // After that, load the new playlist and play for real.
+  if (widgetReady) {
+    widget.play();
+    setTimeout(function() { widget.pause(); }, 50);
+  }
 
+  widgetReady = false;
   widget.unbind(SC.Widget.Events.READY);
   widget.bind(SC.Widget.Events.READY, function() {
     widgetReady = true;
-    // Restore the normal READY handler
     widget.unbind(SC.Widget.Events.READY);
     widget.bind(SC.Widget.Events.READY, function() { widgetReady = true; });
-    // Now call playTrack exactly like the entry statement path
     playTrack(sess.tOrder[sess.cur]);
   });
 
