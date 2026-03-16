@@ -864,30 +864,41 @@ document.getElementById('s1').addEventListener('click', function() {
     sess.cur = window._resumeCur;
     window._resumeMode = false;
     window._resumeCur = undefined;
-    // Prime Safari even on resume — within user gesture
+    // Unlock Safari silently and pre-position widget
+    try {
+      var silentAudio2 = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+        'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+      silentAudio2.volume = 0;
+      silentAudio2.play().catch(function(){});
+    } catch(e) {}
     if (widgetReady) {
-      var resumeIdx = sess.tOrder[sess.cur];
-      widget.skip(resumeIdx);
-      widget.play();
-      sess._primedIdx = resumeIdx;
-      setTimeout(function() { widget.pause(); }, 80);
+      widget.skip(sess.tOrder[sess.cur]);
+      sess._primedIdx = sess.tOrder[sess.cur];
     }
     show('s3');
     setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
     return;
   }
 
-  // Fresh session — shuffle and prime Safari
+  // Fresh session — shuffle tracks
   sess.tOrder = shuffle([0,1,2,3,4]);
+
+  // Unlock Safari audio context silently using a tiny HTML5 audio element
+  // This does NOT touch the SoundCloud widget so no audible glitch
+  try {
+    var silentAudio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+      'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+    silentAudio.volume = 0;
+    silentAudio.play().catch(function(){});
+  } catch(e) {}
+
+  // Pre-position widget on first track without playing — no audible effect
   if (widgetReady) {
-    var primeIdx = sess.tOrder[0];
-    widget.skip(primeIdx);
-    widget.play();
-    sess._primedIdx = primeIdx;
-    setTimeout(function() { widget.pause(); }, 80);
+    widget.skip(sess.tOrder[0]);
+    sess._primedIdx = sess.tOrder[0];
   }
 
-  // Show entry question — always shown for fresh sessions
+  // Show entry question
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
     show('s3');
@@ -1036,6 +1047,14 @@ function updateSetButtons() {
 }
 
 function loadSet(playlistName) {
+  // Unlock Safari audio context on this user gesture
+  try {
+    var silentAudio3 = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+      'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+    silentAudio3.volume = 0;
+    silentAudio3.play().catch(function(){});
+  } catch(e) {}
+
   // Mark this set button as used and mark as complete in localStorage
   var btns = document.querySelectorAll('.set-btn');
   btns.forEach(function(b) {
@@ -1094,14 +1113,11 @@ function loadSet(playlistName) {
     widget = SC.Widget(document.getElementById('sc'));
     widget.bind(SC.Widget.Events.READY, function() {
       widgetReady = true;
-      // Prime Safari on READY — skip to first track and play+pause
-      widget.skip(sess.tOrder[0]);
-      widget.play();
-      setTimeout(function() {
-        widget.pause();
-        // Now play the actual target track
-        playTrack(sess.tOrder[sess.cur]);
-      }, 80);
+      // Pre-position widget on target track — no play/pause needed
+      // silent audio unlocked on the set button tap gesture
+      widget.skip(sess.tOrder[sess.cur]);
+      sess._primedIdx = sess.tOrder[sess.cur];
+      playTrack(sess.tOrder[sess.cur]);
     });
     widget.bind(SC.Widget.Events.FINISH, function() {
       if (widget) widget.pause();
