@@ -608,6 +608,8 @@ document.getElementById('ready-prompt').addEventListener('click', function() {
   clearTimeout(autoTimer);
   if (widget) widget.pause();
   stopDot();
+  document.getElementById('thumbs-wrap').classList.remove('show');
+  clearTimeout(thumbsTimer);
   openPanel(function(ps) { doReveal(ps); });
 });
 
