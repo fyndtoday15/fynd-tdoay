@@ -433,7 +433,7 @@ function show(id) {
   setTimeout(function() {
     var next = document.getElementById(id);
     if (next) next.classList.add('active');
-  }, 40);
+  }, 300);
 
   var dots = document.getElementById('dots');
   if (id === 's3' || id === 's5') {
@@ -684,9 +684,14 @@ document.getElementById('thumb-down').addEventListener('click', function() {
   sess.cur++;
   resetPanel();
   if (sess.cur < 5) {
-    // Force black background before transition
-    var s3 = document.getElementById('s3');
-    if (s3) s3.style.background = '#000000';
+    // Force black on everything before transition
+    document.body.style.background = '#000000';
+    var s3el = document.getElementById('s3');
+    if (s3el) s3el.style.background = '#000000';
+    var stD = document.getElementById('safe-top');
+    var sbD = document.getElementById('safe-bot');
+    if (stD) { stD.style.transition = 'none'; stD.style.background = '#000000'; }
+    if (sbD) { sbD.style.transition = 'none'; sbD.style.background = '#000000'; }
     show('s3');
     if (widgetReady) {
       widget.skip(sess.tOrder[sess.cur]);
@@ -815,10 +820,12 @@ document.getElementById('btn-continue').addEventListener('click', function() {
     resetPanel();
     // Force black immediately before transition — prevents flash
     document.body.style.background = '#000000';
-    var st = document.getElementById('safe-top');
-    var sb = document.getElementById('safe-bot');
-    if (st) { st.style.transition = 'none'; st.style.background = '#000000'; }
-    if (sb) { sb.style.transition = 'none'; sb.style.background = '#000000'; }
+    var s3c = document.getElementById('s3');
+    if (s3c) s3c.style.background = '#000000';
+    var stC = document.getElementById('safe-top');
+    var sbC = document.getElementById('safe-bot');
+    if (stC) { stC.style.transition = 'none'; stC.style.background = '#000000'; }
+    if (sbC) { sbC.style.transition = 'none'; sbC.style.background = '#000000'; }
     show('s3');
     if (widgetReady) {
       widget.skip(sess.tOrder[sess.cur]);
