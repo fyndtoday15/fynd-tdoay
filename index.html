@@ -647,26 +647,18 @@ function playTrack(idx) {
   function go() {
     resetPanel();
     startDot();
-    // Skip to track — if idx is 0 we need to force a reload since widget starts at 0
-    if (idx === 0) {
-      // Jump to track 1 first then back to 0 to force widget to actually load track 0
-      widget.skip(1);
-      setTimeout(function() {
-        widget.skip(0);
-        setTimeout(function() {
-          widget.play();
-          // Backup play attempt
-          setTimeout(function() { widget.play(); }, 800);
-        }, 600);
-      }, 300);
-    } else {
+    // Always force a position change before landing on target track
+    // This ensures widget actually loads the track (skip is no-op if already at that position)
+    var primeIdx = idx === 0 ? 1 : 0;
+    widget.skip(primeIdx);
+    setTimeout(function() {
       widget.skip(idx);
       setTimeout(function() {
         widget.play();
-        // Backup play attempt
+        // Backup play attempt for Safari
         setTimeout(function() { widget.play(); }, 800);
       }, 600);
-    }
+    }, 300);
     sess.listenStart = Date.now();
     clearTimeout(readyTimer);
     clearTimeout(autoTimer);
