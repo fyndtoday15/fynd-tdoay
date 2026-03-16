@@ -647,17 +647,26 @@ function playTrack(idx) {
   function go() {
     resetPanel();
     startDot();
-    widget.skip(idx);
-    // Wait for track to load before playing — 600ms covers Safari's slower init
-    setTimeout(function() {
-      widget.play();
-      // Secondary play attempt in case first fired before track was ready
+    // Skip to track — if idx is 0 we need to force a reload since widget starts at 0
+    if (idx === 0) {
+      // Jump to track 1 first then back to 0 to force widget to actually load track 0
+      widget.skip(1);
       setTimeout(function() {
-        if (sess.listenStart && (Date.now() - sess.listenStart < 2000)) {
+        widget.skip(0);
+        setTimeout(function() {
           widget.play();
-        }
-      }, 1000);
-    }, 600);
+          // Backup play attempt
+          setTimeout(function() { widget.play(); }, 800);
+        }, 600);
+      }, 300);
+    } else {
+      widget.skip(idx);
+      setTimeout(function() {
+        widget.play();
+        // Backup play attempt
+        setTimeout(function() { widget.play(); }, 800);
+      }, 600);
+    }
     sess.listenStart = Date.now();
     clearTimeout(readyTimer);
     clearTimeout(autoTimer);
