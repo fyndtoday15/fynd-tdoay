@@ -432,9 +432,6 @@ var sess = {
   reaction: '',
 };
 
-// Detect mobile — iOS and Android browsers need gesture-aware playback
-var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
 function shuffle(arr) {
   var a = arr.slice(), i = a.length, j, t;
   while (i--) { j = Math.floor(Math.random() * (i + 1)); t = a[i]; a[i] = a[j]; a[j] = t; }
@@ -682,8 +679,13 @@ function playTrack(idx) {
   function go() {
     resetPanel();
     startDot();
+    // Always skip to correct track then play
+    sess._gestureUnlocked = false;
     widget.skip(idx);
-    setTimeout(function() { widget.play(); }, 300);
+    setTimeout(function() {
+      widget.play();
+      setTimeout(function() { widget.play(); }, 500);
+    }, 150);
     sess.listenStart = Date.now();
     clearTimeout(readyTimer);
     clearTimeout(autoTimer);
@@ -785,10 +787,9 @@ document.getElementById('thumb-down').addEventListener('click', function() {
     var sbD = document.getElementById('safe-bot');
     if (stD) { stD.style.transition = 'none'; stD.style.background = '#000000'; }
     if (sbD) { sbD.style.transition = 'none'; sbD.style.background = '#000000'; }
-    if (isMobile && widget && widgetReady) { widget.play(); }
-    if (isMobile && widget && widgetReady) { widget.play(); }
     show('s3');
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
+    if (widgetReady) { sess._gestureUnlocked = true; }
+  setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 100);
   } else {
     markSetComplete(sess.playlist);
     clearAbandoned();
@@ -840,8 +841,40 @@ function doReveal(ps) {
 
 // S1 tap
 document.getElementById('s1').addEventListener('click', function() {
+  // Unlock Web Audio API on user gesture for Safari
+  // This primes the audio context without touching the SC widget
+  try {
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) {
+      var ctx = new AudioContext();
+      var buf = ctx.createBuffer(1, 1, 22050);
+      var src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+      ctx.close();
+    }
+  } catch(e) {}
+
+  // Mark as returning for future visits
   markReturning();
 
+  // If set screen should be restored — go there directly
+  if (window._restoreSetScreen) {
+    window._restoreSetScreen = false;
+    var h = document.getElementById('email-head');
+    if (h) h.textContent = "You'll hear when something new arrives.";
+    document.getElementById('email-in').style.display = 'none';
+    document.getElementById('name-in').style.display = 'none';
+    document.getElementById('email-sub').style.display = 'none';
+    var again = document.getElementById('listen-again');
+    if (again) { again.style.display = 'block'; updateSetButtons(); }
+    if (window._nextSetPlaylist) sess.playlist = window._nextSetPlaylist;
+    show('s6');
+    return;
+  }
+
+  // All sets complete — show waiting screen
   if (window._allSetsComplete) {
     var h = document.getElementById('email-head');
     if (h) h.textContent = "You'll hear when something new arrives.";
@@ -854,28 +887,54 @@ document.getElementById('s1').addEventListener('click', function() {
     return;
   }
 
-  if (!window._resumeMode) {
-    sess.tOrder = shuffle([0,1,2,3,4]);
-  }
-
-  // If resuming abandoned session — skip entry question, go straight to track
+  // If resuming abandoned session within 24hrs — skip entry, go straight to track
   if (window._resumeMode && window._resumeCur !== undefined) {
     sess.cur = window._resumeCur;
     window._resumeMode = false;
     window._resumeCur = undefined;
-    if (isMobile && widget && widgetReady) { widget.play(); }
+    // Unlock Safari silently and pre-position widget
+    try {
+      var silentAudio2 = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+        'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+      silentAudio2.volume = 0;
+      silentAudio2.play().catch(function(){});
+    } catch(e) {}
+    if (widgetReady) {
+      widget.skip(sess.tOrder[sess.cur]);
+      sess._primedIdx = sess.tOrder[sess.cur];
+    }
     show('s3');
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
     return;
   }
 
-  // Normal flow — show entry question
+  // Fresh session — shuffle tracks
+  sess.tOrder = shuffle([0,1,2,3,4]);
+
+  // Unlock Safari audio context silently using a tiny HTML5 audio element
+  // This does NOT touch the SoundCloud widget so no audible glitch
+  try {
+    var silentAudio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+      'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+    silentAudio.volume = 0;
+    silentAudio.play().catch(function(){});
+  } catch(e) {}
+
+  // Pre-position widget on first track without playing — no audible effect
+  if (widgetReady) {
+    widget.skip(sess.tOrder[0]);
+    sess._primedIdx = sess.tOrder[0];
+  }
+
+  // Show entry question
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
-    // Mobile: play synchronously inside tap gesture to unlock audio context
-    if (isMobile && widget && widgetReady) { widget.play(); }
     show('s3');
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
+    // Play immediately after screen switch — still within gesture context on Safari
+    if (widgetReady) {
+      sess._gestureUnlocked = true;
+    }
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 100);
   });
   show('s2');
 });
@@ -892,9 +951,9 @@ document.getElementById('btn-continue').addEventListener('click', function() {
     var sbC = document.getElementById('safe-bot');
     if (stC) { stC.style.transition = 'none'; stC.style.background = '#000000'; }
     if (sbC) { sbC.style.transition = 'none'; sbC.style.background = '#000000'; }
-    if (isMobile && widget && widgetReady) { widget.play(); }
     show('s3');
-    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
+    if (widgetReady) { sess._gestureUnlocked = true; }
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 100);
   } else {
     markSetComplete(sess.playlist);
     clearAbandoned();
@@ -1021,17 +1080,28 @@ function updateSetButtons() {
 }
 
 function loadSet(playlistName) {
+  // Unlock Safari audio context on this user gesture
+  try {
+    var silentAudio3 = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+      'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+    silentAudio3.volume = 0;
+    silentAudio3.play().catch(function(){});
+  } catch(e) {}
+
   // Mark this set button as used and mark as complete in localStorage
   var btns = document.querySelectorAll('.set-btn');
   btns.forEach(function(b) {
-    if (b.textContent.trim() === setLabel(playlistName)) b.classList.add('used');
+    if (b.textContent.trim() === setLabel(playlistName)) {
+      b.classList.add('used');
+    }
   });
-  markSetComplete(playlistName);
+  // Clear email screen flag — they are starting a new session
   LS.set('onEmailScreen', false);
 
   // Reset panel and dot immediately so s3 is clean before showing
   resetPanel();
   startDot();
+  // Force black before transition
   document.body.style.background = '#000000';
   var stL = document.getElementById('safe-top');
   var sbL = document.getElementById('safe-bot');
@@ -1050,9 +1120,11 @@ function loadSet(playlistName) {
   window._resumeMode = false;
   window._resumeCur = undefined;
 
+  // Show s3 immediately so person sees black screen right away
   show('s3');
   document.getElementById('tc').textContent = '1 — 5';
 
+  // Update SoundCloud widget to new playlist
   var playlistUrls = {
     'MVP 1':   'https://soundcloud.com/fynd-today/sets/mvp-1',
     'MVP 1.2': 'https://soundcloud.com/fynd-today/sets/mvp-1-2',
@@ -1064,27 +1136,31 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // Mobile: widget.play() synchronously inside the tap gesture unlocks
-  // the audio context for the cross-origin iframe on mobile browsers.
-  if (isMobile && widget && widgetReady) {
-    widget.play();
-  }
-
-  // All browsers: same src swap + reinit approach
-  var iframe = document.getElementById('sc');
-  iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) +
-    '&auto_play=false&hide_related=true&show_comments=false&show_user=false' +
-    '&show_reposts=false&show_teaser=false&visual=false';
-
+  // Use widget.load() with auto_play:true — Safari allows this because
+  // the load() call is initiated synchronously within the user gesture
   widgetReady = false;
-  setTimeout(function() {
-    initSC();
-    setTimeout(function() {
-      playTrack(sess.tOrder[sess.cur]);
-    }, 500);
-  }, 800);
+  widget.load(url, {
+    auto_play: true,
+    hide_related: true,
+    show_comments: false,
+    show_user: false,
+    show_reposts: false,
+    show_teaser: false,
+    callback: function() {
+      widgetReady = true;
+      var target = sess.tOrder[sess.cur];
+      // Skip to correct shuffled track if not track 0
+      if (target !== 0) {
+        widget.skip(target);
+        setTimeout(function() {
+          widget.play();
+        }, 200);
+      }
+      // Start session timers
+      startTrackTimers();
+    }
+  });
 }
-
 
 // ── RETURNING USER SYSTEM ───────────────────────────────
 
