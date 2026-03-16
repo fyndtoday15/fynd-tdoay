@@ -262,9 +262,9 @@ html.assign-top, body.assign-top { background: var(--black); }
 
 <!-- S7 RECAP -->
 <div class="screen" id="s7">
-  <span class="recap-head">Your five songs</span>
+  <span class="recap-head">Come back to these.</span>
   <div id="recap-list"></div>
-  <button class="recap-continue" id="recap-continue">More comes.</button>
+  <button class="recap-continue" id="recap-continue">Continue</button>
 </div>
 
 <!-- S6 EMAIL -->
@@ -659,6 +659,11 @@ document.getElementById('btn-continue').addEventListener('click', function() {
 
 // Stop for now — go to email
 document.getElementById('btn-stop').addEventListener('click', function() {
+  show('s6');
+});
+
+// Recap continue -> email
+document.getElementById('recap-continue').addEventListener('click', function() {
   show('s6');
 });
 
