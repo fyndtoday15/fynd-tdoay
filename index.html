@@ -168,8 +168,19 @@ html.assign-top, body.assign-top { background: var(--black); }
 }
 .reveal-cta { font-size: 12px; color: var(--black); opacity: 0.6; letter-spacing: 0.12em; text-transform: uppercase; }
 
+/* S7 — RECAP */
+#s7 { background: var(--bg); justify-content: flex-start; padding-top: clamp(56px,11vh,88px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.recap-head { font-size: 15px; color: var(--black); opacity: 0.75; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 32px; align-self: flex-start; }
+.recap-track { width: 100%; padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.recap-track:first-of-type { border-top: 1px solid rgba(0,0,0,0.08); }
+.recap-song { font-size: clamp(15px,3.8vw,17px); font-weight: 400; color: var(--black); line-height: 1.4; }
+.recap-direction { font-size: clamp(12px,3vw,14px); color: var(--black); opacity: 0.4; margin-top: 4px; line-height: 1.4; }
+.recap-continue { display: block; margin: 36px auto 0; font-family: var(--f); font-size: 14px; color: var(--black); background: none; border: 1px solid rgba(0,0,0,0.25); border-radius: 2px; padding: 14px 40px; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; width: 100%; max-width: 280px; animation: ph 3s ease-in-out infinite; }
+
 /* S6 — EMAIL */
 #s6 { background: var(--bg); justify-content: center; }
+.set-btn { font-family: var(--f); font-size: 13px; color: var(--black); background: none; border: 1px solid rgba(0,0,0,0.2); border-radius: 2px; padding: 10px 20px; margin: 4px; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; transition: opacity 0.2s ease; }
+.set-btn:active { opacity: 1; }
 .email-head { font-size: clamp(30px,7vw,46px); font-weight: 400; color: var(--black); letter-spacing: -0.02em; margin-bottom: 44px; text-align: center; }
 .email-input { width: 100%; max-width: 300px; font-family: var(--f); font-size: 16px; color: var(--black); background: transparent; border: none; border-bottom: 1px solid rgba(0,0,0,0.45); padding: 10px 0; outline: none; text-align: center; border-radius: 0; -webkit-appearance: none; }
 .email-input::placeholder { color: var(--black); opacity: 0.22; }
@@ -225,7 +236,7 @@ html.assign-top, body.assign-top { background: var(--black); }
     </div>
   </div>
   <div class="assign-panel" id="assign-panel">
-    <div class="assign-label">Where do you sit now</div>
+    <div class="assign-label">While this plays —</div>
     <div id="assign-list" style="padding-bottom: 32px;"></div>
   </div>
   <div id="sc-wrap">
@@ -248,23 +259,74 @@ html.assign-top, body.assign-top { background: var(--black); }
   </div>
 </div>
 
+<!-- S7 RECAP -->
+<div class="screen" id="s7">
+  <span class="recap-head">Your five songs</span>
+  <div id="recap-list"></div>
+  <button class="recap-continue" id="recap-continue">More comes.</button>
+</div>
+
 <!-- S6 EMAIL -->
 <div class="screen" id="s6">
   <div class="email-head" id="email-head">More comes.</div>
+  <input class="email-input" id="name-in" type="text" placeholder="first name" autocomplete="given-name" autocapitalize="words" style="margin-bottom: 16px;">
   <input class="email-input" id="email-in" type="email" placeholder="your email" autocomplete="email" autocapitalize="none">
   <button class="email-sub" id="email-sub">I'm in.</button>
+  <div id="listen-again" style="display:none; margin-top: 48px; text-align: center; width: 100%;">
+    <div style="font-size: 11px; color: var(--black); opacity: 0.35; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px;">Play another set</div>
+    <button class="set-btn" onclick="loadSet('MVP 1.2')">Set 2</button>
+    <button class="set-btn" onclick="loadSet('MVP 1.3')">Set 3</button>
+    <button class="set-btn" onclick="loadSet('MVP 1.4')">Set 4</button>
+    <button class="set-btn" onclick="loadSet('MVP 1.5')">Set 5</button>
+  </div>
 </div>
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
 
-var TRACKS = [
-  { id:'T001', title:'Soul',          artist:'Lee Brice'   },
-  { id:'T002', title:"We Don't Care", artist:'Akon'        },
-  { id:'T003', title:'In Between',    artist:'Nija'        },
-  { id:'T004', title:'I See Life',    artist:'thekidszn'   },
-  { id:'T005', title:'Alvarado',      artist:'Sean Jacobs' },
-];
+var PLAYLIST_TRACKS = {
+  'MVP 1': [
+    { title:'Soul',                    artist:'Lee Brice'        },
+    { title:"We Don't Care",           artist:'Akon'             },
+    { title:'In Between',              artist:'Nija'             },
+    { title:'I See Life',              artist:'thekidszn'        },
+    { title:'Alvarado',                artist:'Sean Jacobs'      },
+  ],
+  'MVP 1.2': [
+    { title:"I'll Be There",           artist:'Yoshi Flower'     },
+    { title:'3am',                     artist:'Łaszewo'          },
+    { title:'Liquor Store In The Sky', artist:'BJ The Chicago Kid'},
+    { title:'SPILL',                   artist:'Presley Regier'   },
+    { title:'THE SHADOW',              artist:'KAE'              },
+  ],
+  'MVP 1.3': [
+    { title:'Redline',                 artist:'wdlmusic'         },
+    { title:'Shield',                  artist:'WEARETHEGOOD'     },
+    { title:"i kno'",                  artist:'Destin Laurel'    },
+    { title:"Can't Explain It",        artist:'Jermain Reese Jr.'},
+    { title:'That Way',                artist:'XUITCASECITY'     },
+  ],
+  'MVP 1.4': [
+    { title:'You',                     artist:'Benjamin Steer'   },
+    { title:'Pretty Lies',             artist:'Adrian Daniel'    },
+    { title:'No Tomorrow',             artist:'Afrojack'         },
+    { title:'Champagne Dial',          artist:'Col3trane'        },
+    { title:'Been That Way',           artist:'Bryson Tiller'    },
+  ],
+  'MVP 1.5': [
+    { title:'Damn Gloves',             artist:'serpentwithfeet'  },
+    { title:'Home Alright',            artist:'Terry Zhong'      },
+    { title:'2am',                     artist:'PAGEFOURR'        },
+    { title:'Mirage',                  artist:'Yoko Gold'        },
+    { title:'BLAME',                   artist:'Samuel Petra'     },
+  ],
+};
+
+// Get tracks for current playlist
+function getTrack(playlistName, index) {
+  var tracks = PLAYLIST_TRACKS[playlistName] || PLAYLIST_TRACKS['MVP 1'];
+  return tracks[index] || { title: '—', artist: '—' };
+}
 
 var STMTS = [
   { text:'Something is unresolved and the day keeps moving.',              state:'Holding'    },
@@ -282,6 +344,7 @@ var sess = {
   listenStart: null,
   dur: 0,
   log: [],
+  playlist: 'MVP 1',
 };
 
 function shuffle(arr) {
@@ -339,6 +402,25 @@ function startDot() {
   if (dot) dot.classList.remove('stopped');
 }
 
+
+function buildRecap() {
+  var el = document.getElementById('recap-list');
+  el.innerHTML = '';
+  sess.log.forEach(function(a) {
+    var wrap = document.createElement('div');
+    wrap.className = 'recap-track';
+    var song = document.createElement('div');
+    song.className = 'recap-song';
+    song.textContent = a.trackTitle || '—';
+    var dir = document.createElement('div');
+    dir.className = 'recap-direction';
+    dir.textContent = DIRECTION[a.postState] || '';
+    wrap.appendChild(song);
+    wrap.appendChild(dir);
+    el.appendChild(wrap);
+  });
+}
+
 function buildList(elId, cls, includeNone, cb) {
   var el = document.getElementById(elId);
   el.innerHTML = '';
@@ -382,7 +464,26 @@ function openPanel(cb) {
   // Safe area: top stays black, bottom becomes off-white
   var sb = document.getElementById('safe-bot');
   if (sb) { sb.style.transition = 'none'; sb.style.background = '#FCFBF4'; }
-  buildList('assign-list', 'assign-stmt', true, cb);
+  // Build three fixed position options
+  var el = document.getElementById('assign-list');
+  el.innerHTML = '';
+  var positions = [
+    { text: 'Something in me wants to stay here.', value: 'Stay' },
+    { text: 'Something in me wants to move.',      value: 'Move' },
+    { text: 'Something just became clearer.',       value: 'Open' },
+  ];
+  positions.forEach(function(p) {
+    var d = document.createElement('div');
+    d.className = 'assign-stmt';
+    d.textContent = p.text;
+    d.addEventListener('click', function() {
+      if (d.classList.contains('tapped')) return;
+      d.classList.add('tapped');
+      var val = p.value;
+      setTimeout(function() { cb(val); }, 150);
+    });
+    el.appendChild(d);
+  });
   // Hide ready prompt
   document.getElementById('ready-prompt').classList.remove('show');
   document.getElementById('ready-prompt').style.pointerEvents = 'none';
@@ -470,6 +571,13 @@ document.getElementById('ready-prompt').addEventListener('click', function() {
   openPanel(function(ps) { doReveal(ps); });
 });
 
+  var DIRECTION = {
+    'Stay': 'When you want to stay with the moment.',
+    'Move': 'When you want to move from the moment.',
+    'Open': 'When you want the moment to open up.',
+    'Something Else': 'When none of these landed — keep listening.',
+  };
+
 function doReveal(ps) {
   clearTimeout(readyTimer);
   clearTimeout(autoTimer);
@@ -477,8 +585,12 @@ function doReveal(ps) {
   stopDot();
   sess.dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90) : 0;
   var ti = sess.tOrder[sess.cur];
-  var tr = TRACKS[ti] || { id:'T00'+(ti+1), title:'—', artist:'—' };
-  var assignment = { sessionId:sess.id, trackId:tr.id, entryState:sess.entryState, postState:ps, duration:sess.dur, match:sess.entryState===ps?'Yes':'No' };
+  var tr = getTrack(sess.playlist, ti);
+  // Track ID reflects session position (1-5), not playlist position
+  var sessionTrackId = 'T00' + (sess.cur + 1);
+  // Track Title is "Song Name — Artist Name"
+  var trackTitle = tr.title + ' — ' + tr.artist;
+  var assignment = { sessionId:sess.id, trackId:sessionTrackId, trackTitle:trackTitle, entryState:sess.entryState, postState:ps, duration:sess.dur };
   sess.log.push(assignment);
 
   // Send this track's data immediately — don't wait for email
@@ -490,7 +602,7 @@ function doReveal(ps) {
       sessionId: sess.id,
       email: '',
       entryState: sess.entryState,
-      assignments: [{ trackId: assignment.trackId, duration: assignment.duration, postState: assignment.postState, match: assignment.match, week: week }],
+      assignments: [{ trackId: sessionTrackId, trackTitle: trackTitle, duration: assignment.duration, postState: assignment.postState, week: week, playlist: sess.playlist }],
     }),
   }).catch(function(err) { console.error('Track log error:', err); });
 
@@ -550,14 +662,22 @@ document.getElementById('btn-stop').addEventListener('click', function() {
 
 // Email
 document.getElementById('email-sub').addEventListener('click', function() {
+  var firstName = document.getElementById('name-in').value.trim();
   var email = document.getElementById('email-in').value.trim();
+  if (!firstName) { document.getElementById('name-in').style.borderBottomColor = 'rgba(0,0,0,0.9)'; return; }
   if (!email || !email.includes('@')) { document.getElementById('email-in').style.borderBottomColor = 'rgba(0,0,0,0.9)'; return; }
+  document.getElementById('name-in').style.display = 'none';
   document.getElementById('email-in').style.display = 'none';
   document.getElementById('email-sub').style.display = 'none';
   var h = document.getElementById('email-head');
   h.textContent = "You'll hear when something new arrives.";
   h.style.fontSize = '18px';
   h.style.opacity = '0.6';
+  // Show listen again button
+  setTimeout(function() {
+    var again = document.getElementById('listen-again');
+    if (again) again.style.display = 'block';
+  }, 600);
   // Email submitted — update records for this session
   // Send email update — patches all records for this session with email
   fetch('/.netlify/functions/log-session', {
@@ -577,6 +697,40 @@ document.getElementById('email-sub').addEventListener('click', function() {
 document.getElementById('email-in').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') document.getElementById('email-sub').click();
 });
+
+
+function loadSet(playlistName) {
+  // Reset session for new set
+  sess.cur = 0;
+  sess.tOrder = shuffle([0,1,2,3,4]);
+  sess.log = [];
+  sess.listenStart = null;
+  sess.id = 'S' + Date.now().toString(36).toUpperCase();
+
+  // Update SoundCloud widget to new playlist
+  var playlistUrls = {
+    'MVP 1':   'https://soundcloud.com/fynd-today/sets/mvp-1',
+    'MVP 1.2': 'https://soundcloud.com/fynd-today/sets/mvp-1-2',
+    'MVP 1.3': 'https://soundcloud.com/fynd-today/sets/mvp-1-3',
+    'MVP 1.4': 'https://soundcloud.com/fynd-today/sets/mvp-1-4',
+    'MVP 1.5': 'https://soundcloud.com/fynd-today/sets/mvp-1-5',
+  };
+
+  sess.playlist = playlistName;
+  var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
+  var iframe = document.getElementById('sc');
+  iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
+
+  // Reinit widget after iframe reload
+  widgetReady = false;
+  setTimeout(function() {
+    initSC();
+    show('s3');
+    setTimeout(function() {
+      playTrack(sess.tOrder[sess.cur]);
+    }, 800);
+  }, 1000);
+}
 
 initSC();
 
