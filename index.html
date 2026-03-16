@@ -313,14 +313,14 @@ html.assign-top, body.assign-top { background: var(--black); }
       'MVP 1.5': 'https://soundcloud.com/fynd-today/sets/mvp-1-5',
     };
     try {
-      // pendingSet — user chose a set via set button, reload happened
+      // pendingSet — set button was tapped, page reloaded, load correct playlist src
       var pending = JSON.parse(localStorage.getItem('fynd_pendingSet'));
       if (pending && URLS[pending]) {
         var iframe = document.getElementById('sc');
         if (iframe) {
           iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(URLS[pending]) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
         }
-        return; // src set, done
+        return;
       }
       // Only preload correct src for abandoned session resume
       // initUserState handles all other routing
@@ -868,18 +868,6 @@ document.getElementById('s1').addEventListener('click', function() {
   // Mark as returning for future visits
   markReturning();
 
-  // pendingSet reload — go straight to entry question then listen
-  if (window._pendingSetReady) {
-    window._pendingSetReady = false;
-    buildList('entry-list', 'stmt', true, function(state) {
-      sess.entryState = state;
-      show('s3');
-      setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 500);
-    });
-    show('s2');
-    return;
-  }
-
   // If set screen should be restored — go there directly
   if (window._restoreSetScreen) {
     window._restoreSetScreen = false;
@@ -1157,9 +1145,7 @@ function loadSet(playlistName) {
   sess.playlist = playlistName;
   var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
 
-  // Save the chosen playlist and reload the page.
-  // After reload the person taps Today. which already works perfectly on mobile.
-  // This is the same path as a manual refresh — proven to work every time.
+  // Save chosen playlist and reload — same path as manual refresh which works perfectly.
   LS.set('pendingSet', playlistName);
   window.location.reload();
 }
@@ -1240,14 +1226,6 @@ function markReturning() {
 
 // On arrival — check state and set up accordingly
 function initUserState() {
-  // If a set was chosen via set button, use it and clear the flag
-  var pendingSet = LS.get('pendingSet');
-  if (pendingSet) {
-    LS.set('pendingSet', null);
-    sess.playlist = pendingSet;
-    // Skip all other routing — go straight to Today. tap flow
-    window._pendingSet = pendingSet;
-  }
   var returning = isReturning();
   var abandoned = getAbandoned();
   var nextSet = getNextSet();
@@ -1277,12 +1255,7 @@ function initUserState() {
     : null;
 
   var onEmailScreen = LS.get('onEmailScreen');
-
-  // pendingSet takes priority — user explicitly chose this set
-  if (window._pendingSet) {
-    sess.playlist = window._pendingSet;
-    window._resumeMode = false;
-  } else if (returning) {
+  if (returning) {
     // Check for abandoned session first
     // But not if we were on the email screen — that means session completed
     if (abandoned && !onEmailScreen) {
@@ -1317,10 +1290,20 @@ function initUserState() {
   // 1. onEmailScreen flag is set (same browser, same tab)
   // 2. Returning user with completed sets and no abandoned session (new tab or new browser session)
   var completedSetsCheck = LS.get('completedSets') || [];
-  var shouldRestore = onEmailScreen || (returning && completedSetsCheck.length > 0 && !abandoned);
-  if (shouldRestore) {
-    window._restoreSetScreen = true;
-    window._nextSetPlaylist = nextSet;
+  // If a pendingSet reload just happened, go straight to listen — not the set screen
+  var pendingSet = LS.get('pendingSet');
+  if (pendingSet) {
+    LS.set('pendingSet', null);
+    sess.playlist = pendingSet;
+    window._resumeMode = false;
+    window._restoreSetScreen = false;
+    // Don't set shouldRestore — go straight to Today. -> listen flow
+  } else {
+    var shouldRestore = onEmailScreen || (returning && completedSetsCheck.length > 0 && !abandoned);
+    if (shouldRestore) {
+      window._restoreSetScreen = true;
+      window._nextSetPlaylist = nextSet;
+    }
   }
 }
 
