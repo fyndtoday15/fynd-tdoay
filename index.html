@@ -647,13 +647,15 @@ function playTrack(idx) {
   function go() {
     resetPanel();
     startDot();
-    // Always force a position change before landing on target track
-    // This ensures widget actually loads the track (skip is no-op if already at that position)
+    // Force position change silently before landing on target track
+    // Mute during prime to prevent audio glitch from brief wrong-track load
+    widget.setVolume(0);
     var primeIdx = idx === 0 ? 1 : 0;
     widget.skip(primeIdx);
     setTimeout(function() {
       widget.skip(idx);
       setTimeout(function() {
+        widget.setVolume(100);
         widget.play();
         // Backup play attempt for Safari
         setTimeout(function() { widget.play(); }, 800);
