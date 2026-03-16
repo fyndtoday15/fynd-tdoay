@@ -186,13 +186,14 @@ html.assign-top, body.assign-top { background: var(--black); }
   right: 12px;
   font-size: 8px;
   color: var(--bg);
-  opacity: 0.2;
+  opacity: 0.35;
   letter-spacing: 0.03em;
   text-align: right;
   pointer-events: none;
-  max-width: 130px;
-  line-height: 1.4;
+  max-width: 160px;
+  line-height: 1.5;
   z-index: 10;
+  word-break: break-word;
 }
 .legal-corner a { pointer-events: all; color: inherit; text-decoration: none; }
 
@@ -214,8 +215,12 @@ html.assign-top, body.assign-top { background: var(--black); }
   pointer-events: none;
   transition: opacity 0.5s ease;
   margin-top: 32px;
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
 }
 .thumbs-wrap.show { opacity: 1; pointer-events: all; }
+.thumb-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; width: 28px; height: 28px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: none; }
+.thumb-btn:active { opacity: 0.5; }
 .thumb-btn {
   width: 28px;
   height: 28px;
@@ -231,7 +236,6 @@ html.assign-top, body.assign-top { background: var(--black); }
   line-height: 1;
 }
 .thumb-btn:active { opacity: 0.5; }
-.thumb-btn { -webkit-filter: grayscale(100%); filter: grayscale(100%); }
 .thumb-icon { font-size: 12px; color: var(--bg); line-height: 1; }
 
 #dots { position: fixed; bottom: clamp(24px,4.5vh,40px); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 999; }
@@ -644,9 +648,13 @@ document.getElementById('thumb-down').addEventListener('click', function() {
   clearTimeout(thumbsTimer);
   clearTimeout(readyTimer);
   clearTimeout(autoTimer);
+  // Hide instantly with no transition to prevent flash
+  var tw = document.getElementById('thumbs-wrap');
+  tw.style.transition = 'none';
+  tw.style.opacity = '0';
+  tw.classList.remove('show');
   if (widget) widget.pause();
   stopDot();
-  document.getElementById('thumbs-wrap').classList.remove('show');
 
   var dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90) : 0;
   var ti = sess.tOrder[sess.cur];
