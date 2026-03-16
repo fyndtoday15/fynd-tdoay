@@ -867,6 +867,16 @@ document.getElementById('s1').addEventListener('click', function() {
     return;
   }
 
+  // Shuffle first so we know which track is first
+  if (!window._resumeMode) {
+    sess.tOrder = shuffle([0,1,2,3,4]);
+  }
+  // Prime Safari: skip to first track and play+pause within user gesture
+  if (widgetReady) {
+    widget.skip(sess.tOrder[0]);
+    widget.play();
+    setTimeout(function() { widget.pause(); }, 80);
+  }
   // Normal flow — show entry question
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
@@ -1074,6 +1084,14 @@ function loadSet(playlistName) {
     widget = SC.Widget(document.getElementById('sc'));
     widget.bind(SC.Widget.Events.READY, function() {
       widgetReady = true;
+      // Prime Safari on READY — skip to first track and play+pause
+      widget.skip(sess.tOrder[0]);
+      widget.play();
+      setTimeout(function() {
+        widget.pause();
+        // Now play the actual target track
+        playTrack(sess.tOrder[sess.cur]);
+      }, 80);
     });
     widget.bind(SC.Widget.Events.FINISH, function() {
       if (widget) widget.pause();
@@ -1084,8 +1102,6 @@ function loadSet(playlistName) {
         openPanel(function(ps) { doReveal(ps); });
       }
     });
-    // playTrack polls widgetReady — will wait however long Safari needs
-    playTrack(sess.tOrder[sess.cur]);
   }, 600);
 }
 
@@ -1194,8 +1210,6 @@ function initUserState() {
     : null;
 
   var onEmailScreen = LS.get('onEmailScreen');
-  console.log('initUserState - returning:', returning, 'abandoned:', abandoned, 'onEmailScreen:', onEmailScreen, 'nextSet:', nextSet);
-
   if (returning) {
     // Check for abandoned session first
     // But not if we were on the email screen — that means session completed
