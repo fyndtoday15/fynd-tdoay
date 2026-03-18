@@ -314,13 +314,29 @@ html.assign-top, body.assign-top { background: var(--black); }
       'MVP 1.5': 'https://soundcloud.com/fynd-today/sets/mvp-1-5',
     };
     try {
-      // Only preload correct src for abandoned session resume
-      // initUserState handles all other routing
-      var abandoned = JSON.parse(localStorage.getItem('fynd_abandoned'));
+      var pending = JSON.parse(localStorage.getItem('fynd_pendingSet'));
+      if (pending && URLS[pending]) {
+        var iframe = document.getElementById('sc');
+        if (iframe) {
+          iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(URLS[pending]) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
+        }
+        return;
+      }
+      // Find most recently active abandoned session for iframe src
+      var abandonedSets = JSON.parse(localStorage.getItem('fynd_abandonedSets')) || {};
       var onEmail = JSON.parse(localStorage.getItem('fynd_onEmailScreen'));
-      if (abandoned && !onEmail && abandoned.playlist && abandoned.timestamp && (Date.now() - abandoned.timestamp < 86400000)) {
-        var url = URLS[abandoned.playlist];
-        if (url && abandoned.playlist !== 'MVP 1') {
+      var cutoff = 24 * 60 * 60 * 1000;
+      var now = Date.now();
+      var best = null;
+      Object.keys(abandonedSets).forEach(function(k) {
+        var a = abandonedSets[k];
+        if (a && a.timestamp && (now - a.timestamp < cutoff)) {
+          if (!best || a.timestamp > best.timestamp) best = a;
+        }
+      });
+      if (best && !onEmail && best.playlist && best.playlist !== 'MVP 1') {
+        var url = URLS[best.playlist];
+        if (url) {
           var iframe = document.getElementById('sc');
           if (iframe) {
             iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
@@ -359,6 +375,7 @@ html.assign-top, body.assign-top { background: var(--black); }
   <button class="email-sub" id="email-sub">I'm in.</button>
   <div id="listen-again" style="display:none; margin-top: 48px; text-align: center; width: 100%;">
     <div style="font-size: 11px; color: var(--black); opacity: 0.35; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px;">Play another set</div>
+    <button class="set-btn" id="set-btn-1" onclick="loadSet('MVP 1')">Set 1</button>
     <button class="set-btn" onclick="loadSet('MVP 1.2')">Set 2</button>
     <button class="set-btn" onclick="loadSet('MVP 1.3')">Set 3</button>
     <button class="set-btn" onclick="loadSet('MVP 1.4')">Set 4</button>
@@ -669,7 +686,7 @@ function startTrackTimers() {
     if (!document.getElementById('assign-panel').classList.contains('open')) {
       openPanel(function(ps) { doReveal(ps); });
     }
-  }, 90000);
+  }, 60000);
   saveAbandoned();
   if (sess.cur > 4) sess.cur = 0;
   document.getElementById('tc').textContent = (sess.cur + 1) + ' — 5';
@@ -716,7 +733,7 @@ function playTrack(idx) {
       if (!document.getElementById('assign-panel').classList.contains('open')) {
         openPanel(function(ps) { doReveal(ps); });
       }
-    }, 90000);
+    }, 60000);
 
     // Cap cur to valid range 0-4
     if (sess.cur > 4) sess.cur = 0;
@@ -760,7 +777,7 @@ document.getElementById('thumb-down').addEventListener('click', function() {
   if (widget) widget.pause();
   stopDot();
 
-  var dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90) : 0;
+  var dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 60) : 0;
   var ti = sess.tOrder[sess.cur];
   var tr = getTrack(sess.playlist, ti);
   var sessionTrackId = 'T00' + (sess.cur + 1);
@@ -811,7 +828,7 @@ function doReveal(ps) {
   clearTimeout(autoTimer);
   if (widget) widget.pause();
   stopDot();
-  sess.dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 90) : 0;
+  sess.dur = sess.listenStart ? Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 60) : 0;
   var ti = sess.tOrder[sess.cur];
   var tr = getTrack(sess.playlist, ti);
   // Track ID reflects session position (1-5), not playlist position
@@ -838,6 +855,9 @@ function doReveal(ps) {
   document.getElementById('r-title').textContent = tr.title;
   document.getElementById('r-artist').textContent = tr.artist;
   show('s5');
+  sess.cur++;
+  saveAbandoned();
+  sess.cur--;
 }
 
 // S1 tap
@@ -864,7 +884,7 @@ document.getElementById('s1').addEventListener('click', function() {
   if (window._restoreSetScreen) {
     window._restoreSetScreen = false;
     var h = document.getElementById('email-head');
-    if (h) h.textContent = "You'll hear when something new arrives.";
+    if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
     document.getElementById('email-in').style.display = 'none';
     document.getElementById('name-in').style.display = 'none';
     document.getElementById('email-sub').style.display = 'none';
@@ -878,13 +898,43 @@ document.getElementById('s1').addEventListener('click', function() {
   // All sets complete — show waiting screen
   if (window._allSetsComplete) {
     var h = document.getElementById('email-head');
-    if (h) h.textContent = "You'll hear when something new arrives.";
+    if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
     document.getElementById('email-in').style.display = 'none';
     document.getElementById('name-in').style.display = 'none';
     document.getElementById('email-sub').style.display = 'none';
     var again = document.getElementById('listen-again');
     if (again) again.style.display = 'none';
     show('s6');
+    return;
+  }
+
+  if (window._skipEntry) {
+    window._skipEntry = false;
+    if (window._resumeMode && window._resumeCur !== undefined) {
+      sess.cur = window._resumeCur;
+      window._resumeMode = false;
+      window._resumeCur = undefined;
+      try {
+        var silentAudioR = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+          'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+        silentAudioR.volume = 0;
+        silentAudioR.play().catch(function(){});
+      } catch(e) {}
+      if (widgetReady) { widget.skip(sess.tOrder[sess.cur]); sess._primedIdx = sess.tOrder[sess.cur]; }
+      show('s3');
+      setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
+      return;
+    }
+    sess.tOrder = shuffle([0,1,2,3,4]);
+    try {
+      var silentAudioP = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+        'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+      silentAudioP.volume = 0;
+      silentAudioP.play().catch(function(){});
+    } catch(e) {}
+    if (widgetReady) { widget.skip(sess.tOrder[0]); sess._primedIdx = sess.tOrder[0]; }
+    show('s3');
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
     return;
   }
 
@@ -920,12 +970,6 @@ document.getElementById('s1').addEventListener('click', function() {
     silentAudio.volume = 0;
     silentAudio.play().catch(function(){});
   } catch(e) {}
-
-  // Pre-position widget on first track without playing — no audible effect
-  if (widgetReady) {
-    widget.skip(sess.tOrder[0]);
-    sess._primedIdx = sess.tOrder[0];
-  }
 
   // Show entry question
   buildList('entry-list', 'stmt', true, function(state) {
@@ -965,8 +1009,19 @@ document.getElementById('btn-continue').addEventListener('click', function() {
 
 // Stop for now — go to email
 document.getElementById('btn-stop').addEventListener('click', function() {
-  clearAbandoned();
-  LS.set('onEmailScreen', true);
+  sess.cur++;
+  saveAbandoned();
+  sess.cur--;
+  var savedEmail = LS.get('email');
+  if (savedEmail) {
+    var h = document.getElementById('email-head');
+    if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
+    document.getElementById('email-in').style.display = 'none';
+    document.getElementById('name-in').style.display = 'none';
+    document.getElementById('email-sub').style.display = 'none';
+    var again = document.getElementById('listen-again');
+    if (again) { again.style.display = 'block'; updateSetButtons(); }
+  }
   show('s6');
 });
 
@@ -993,12 +1048,12 @@ document.getElementById('recap-continue').addEventListener('click', function() {
 
     // Show brief confirmation then listen again
     var h = document.getElementById('email-head');
-    if (h) h.textContent = "You'll hear when something new arrives.";
+    if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
     document.getElementById('email-in').style.display = 'none';
     document.getElementById('name-in').style.display = 'none';
     document.getElementById('email-sub').style.display = 'none';
     var again = document.getElementById('listen-again');
-    if (again) again.style.display = 'block';
+    if (again) { again.style.display = 'block'; updateSetButtons(); }
     show('s6');
   } else {
     show('s6');
@@ -1062,20 +1117,20 @@ function setLabel(playlistName) {
 
 function updateSetButtons() {
   var completed = LS.get('completedSets') || [];
-  var playlistByLabel = {
-    'Set 2': 'MVP 1.2',
-    'Set 3': 'MVP 1.3',
-    'Set 4': 'MVP 1.4',
-    'Set 5': 'MVP 1.5',
-  };
-  var btns = document.querySelectorAll('.set-btn');
-  btns.forEach(function(b) {
-    var label = b.textContent.trim();
-    var playlist = playlistByLabel[label];
-    if (playlist && completed.indexOf(playlist) !== -1) {
+  var setNames = { 'MVP 1': 'Set 1', 'MVP 1.2': 'Set 2', 'MVP 1.3': 'Set 3', 'MVP 1.4': 'Set 4', 'MVP 1.5': 'Set 5' };
+  document.querySelectorAll('.set-btn').forEach(function(b) {
+    var oc = b.getAttribute('onclick') || '';
+    var m = oc.match(/loadSet\('([^']+)'\)/);
+    if (!m) return;
+    var playlist = m[1];
+    var name = setNames[playlist] || playlist;
+    if (completed.indexOf(playlist) !== -1) {
       b.classList.add('used');
+      b.textContent = name;
     } else {
       b.classList.remove('used');
+      var ab = getAbandoned(playlist);
+      b.textContent = ab ? ('Resume ' + name) : name;
     }
   });
 }
@@ -1099,73 +1154,8 @@ function loadSet(playlistName) {
   // Clear email screen flag — they are starting a new session
   LS.set('onEmailScreen', false);
 
-  // Reset panel and dot immediately so s3 is clean before showing
-  resetPanel();
-  startDot();
-  // Force black before transition
-  document.body.style.background = '#000000';
-  var stL = document.getElementById('safe-top');
-  var sbL = document.getElementById('safe-bot');
-  if (stL) { stL.style.transition = 'none'; stL.style.background = '#000000'; }
-  if (sbL) { sbL.style.transition = 'none'; sbL.style.background = '#000000'; }
-
-  // Full clean session reset
-  sess.cur = 0;
-  sess.tOrder = shuffle([0,1,2,3,4]);
-  sess.log = [];
-  sess.listenStart = null;
-  sess.dur = 0;
-  sess.reaction = '';
-  sess.entryState = null;
-  sess.id = 'S' + Date.now().toString(36).toUpperCase();
-  window._resumeMode = false;
-  window._resumeCur = undefined;
-
-  // Show s3 immediately so person sees black screen right away
-  show('s3');
-  document.getElementById('tc').textContent = '1 — 5';
-
-  // Update SoundCloud widget to new playlist
-  var playlistUrls = {
-    'MVP 1':   'https://soundcloud.com/fynd-today/sets/mvp-1',
-    'MVP 1.2': 'https://soundcloud.com/fynd-today/sets/mvp-1-2',
-    'MVP 1.3': 'https://soundcloud.com/fynd-today/sets/mvp-1-3',
-    'MVP 1.4': 'https://soundcloud.com/fynd-today/sets/mvp-1-4',
-    'MVP 1.5': 'https://soundcloud.com/fynd-today/sets/mvp-1-5',
-  };
-
-  sess.playlist = playlistName;
-  var url = playlistUrls[playlistName] || playlistUrls['MVP 1'];
-
-  // widget.load() with auto_play:true starts playback on the new playlist.
-  // We listen for PLAY_PROGRESS (fires reliably on mobile when audio starts)
-  // to know playback is live, then skip to correct track and start timers.
-  widgetReady = false;
-  var loadSetHandled = false;
-
-  widget.unbind(SC.Widget.Events.PLAY_PROGRESS);
-  widget.bind(SC.Widget.Events.PLAY_PROGRESS, function() {
-    if (loadSetHandled) return;
-    loadSetHandled = true;
-    widget.unbind(SC.Widget.Events.PLAY_PROGRESS);
-
-    widgetReady = true;
-    var target = sess.tOrder[sess.cur];
-    if (target !== 0) {
-      widget.skip(target);
-      setTimeout(function() { widget.play(); }, 200);
-    }
-    startTrackTimers();
-  });
-
-  widget.load(url, {
-    auto_play: true,
-    hide_related: true,
-    show_comments: false,
-    show_user: false,
-    show_reposts: false,
-    show_teaser: false,
-  });
+  LS.set('pendingSet', playlistName);
+  window.location.reload();
 }
 
 // ── RETURNING USER SYSTEM ───────────────────────────────
@@ -1205,33 +1195,46 @@ function markSetComplete(playlistName) {
 
 function saveAbandoned() {
   if (sess.cur === 0 && !sess.listenStart) return;
-  // Don't save if this set is already marked complete
   var completed = LS.get('completedSets') || [];
   if (completed.indexOf(sess.playlist) !== -1) return;
-  var curToSave = Math.min(sess.cur, 4); // never save cur > 4
-  LS.set('abandoned', {
+  var curToSave = Math.min(sess.cur, 4);
+  var all = LS.get('abandonedSets') || {};
+  all[sess.playlist] = {
     sessionId: sess.id,
     playlist: sess.playlist,
     cur: curToSave,
     tOrder: sess.tOrder,
     entryState: sess.entryState,
+    log: sess.log || [],
     timestamp: Date.now(),
-  });
+  };
+  LS.set('abandonedSets', all);
 }
 
 function clearAbandoned() {
-  LS.set('abandoned', null);
+  var all = LS.get('abandonedSets') || {};
+  delete all[sess.playlist];
+  LS.set('abandonedSets', all);
 }
 
-function getAbandoned() {
-  var a = LS.get('abandoned');
-  if (!a) return null;
-  // Only resume if within 24 hours
-  if (Date.now() - a.timestamp > 24 * 60 * 60 * 1000) {
-    clearAbandoned();
-    return null;
-  }
-  return a;
+function getAbandoned(playlist) {
+  var all = LS.get('abandonedSets') || {};
+  var cutoff = 24 * 60 * 60 * 1000;
+  var now = Date.now();
+  // Clean expired entries
+  var changed = false;
+  Object.keys(all).forEach(function(k) {
+    if (now - all[k].timestamp > cutoff) { delete all[k]; changed = true; }
+  });
+  if (changed) LS.set('abandonedSets', all);
+  if (playlist) return all[playlist] || null;
+  // No playlist specified — return most recently active entry
+  var keys = Object.keys(all);
+  if (!keys.length) return null;
+  var bestKey = keys.reduce(function(best, k) {
+    return all[k].timestamp > all[best].timestamp ? k : best;
+  }, keys[0]);
+  return all[bestKey];
 }
 
 function isReturning() {
@@ -1245,7 +1248,6 @@ function markReturning() {
 // On arrival — check state and set up accordingly
 function initUserState() {
   var returning = isReturning();
-  var abandoned = getAbandoned();
   var nextSet = getNextSet();
   var savedEmail = LS.get('email') || '';
   var savedName = LS.get('firstName') || '';
@@ -1273,28 +1275,23 @@ function initUserState() {
     : null;
 
   var onEmailScreen = LS.get('onEmailScreen');
+  var abandoned = getAbandoned(); // most recently active
   if (returning) {
-    // Check for abandoned session first
-    // But not if we were on the email screen — that means session completed
     if (abandoned && !onEmailScreen) {
-      // Resume abandoned — go straight to entry then resume
       sess.id = abandoned.sessionId;
       sess.playlist = abandoned.playlist;
       sess.tOrder = abandoned.tOrder;
       sess.entryState = abandoned.entryState;
-      // cur will be set after entry question
+      sess.log = abandoned.log || [];
       window._resumeCur = abandoned.cur;
       window._resumeMode = true;
     } else if (!nextSet) {
-      // All sets done — show waiting screen after tap
       window._allSetsComplete = true;
     } else {
-      // Next set available
       sess.playlist = nextSet;
       window._resumeMode = false;
     }
   } else {
-    // First time — always MVP 1
     sess.playlist = 'MVP 1';
   }
 
@@ -1308,10 +1305,26 @@ function initUserState() {
   // 1. onEmailScreen flag is set (same browser, same tab)
   // 2. Returning user with completed sets and no abandoned session (new tab or new browser session)
   var completedSetsCheck = LS.get('completedSets') || [];
-  var shouldRestore = onEmailScreen || (returning && completedSetsCheck.length > 0 && !abandoned);
-  if (shouldRestore) {
-    window._restoreSetScreen = true;
-    window._nextSetPlaylist = nextSet;
+  var pendingSet = LS.get('pendingSet');
+  if (pendingSet) {
+    LS.set('pendingSet', null);
+    sess.playlist = pendingSet;
+    window._resumeMode = false;
+    window._restoreSetScreen = false;
+    var abPending = getAbandoned(pendingSet);
+    if (abPending) {
+      sess.tOrder = abPending.tOrder;
+      sess.log = abPending.log || [];
+      window._resumeCur = abPending.cur;
+      window._resumeMode = true;
+    }
+    window._skipEntry = true;
+  } else {
+    var shouldRestore = onEmailScreen || (returning && completedSetsCheck.length > 0 && !abandoned);
+    if (shouldRestore) {
+      window._restoreSetScreen = true;
+      window._nextSetPlaylist = nextSet;
+    }
   }
 }
 
@@ -1325,6 +1338,27 @@ if (window.location.search.indexOf('reset=true') !== -1) {
 initUserState();
 
 initSC();
+
+window.addEventListener('pagehide', function() {
+  if (!sess.listenStart) return;
+  if (!sess.entryState) return;
+  var dur = Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 60);
+  var ti = sess.tOrder[sess.cur];
+  if (ti === undefined) return;
+  var tr = getTrack(sess.playlist, ti);
+  var sessionTrackId = 'T00' + (sess.cur + 1);
+  var trackTitle = tr.title + ' — ' + tr.artist;
+  var week = 'W' + String(Math.max(1, Math.ceil((Date.now() - new Date('2026-03-15').getTime()) / (7*24*60*60*1000)))).padStart(2,'0');
+  var payload = JSON.stringify({
+    sessionId: sess.id,
+    email: '',
+    entryState: sess.entryState,
+    assignments: [{ trackId: sessionTrackId, trackTitle: trackTitle, duration: dur, postState: 'Abandoned', week: week, playlist: sess.playlist, reaction: '', visitNumber: window._visitNumber || 1, daysSinceLastVisit: window._daysSinceLastVisit }],
+  });
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon('/.netlify/functions/log-session', new Blob([payload], { type: 'application/json' }));
+  }
+});
 
 // Set screen restore handled in s1 tap);
 
