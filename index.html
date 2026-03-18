@@ -321,21 +321,22 @@ html.assign-top, body.assign-top { background: var(--black); }
         }
         return;
       }
+      // Most recently touched abandoned set — for refresh resume
       var abandonedSets = JSON.parse(localStorage.getItem('fynd_abandonedSets')) || {};
       var onEmail = JSON.parse(localStorage.getItem('fynd_onEmailScreen'));
       var now = Date.now();
-      var abKeys = Object.keys(abandonedSets);
-      for (var i = 0; i < abKeys.length; i++) {
-        var ab = abandonedSets[abKeys[i]];
-        if (!onEmail && ab && ab.playlist && ab.timestamp && (now - ab.timestamp < 86400000)) {
-          var url = URLS[ab.playlist];
-          if (url && ab.playlist !== 'MVP 1') {
-            var iframe = document.getElementById('sc');
-            if (iframe) {
-              iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
-            }
-          }
-          break;
+      var cutoff = 24 * 60 * 60 * 1000;
+      var latest = null;
+      Object.keys(abandonedSets).forEach(function(k) {
+        var a = abandonedSets[k];
+        if (!onEmail && a && a.timestamp && (now - a.timestamp < cutoff)) {
+          if (!latest || a.timestamp > latest.timestamp) latest = a;
+        }
+      });
+      if (latest && latest.playlist && URLS[latest.playlist] && latest.playlist !== 'MVP 1') {
+        var iframe = document.getElementById('sc');
+        if (iframe) {
+          iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(URLS[latest.playlist]) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
         }
       }
     } catch(e) {}
@@ -370,6 +371,7 @@ html.assign-top, body.assign-top { background: var(--black); }
   <button class="email-sub" id="email-sub">I'm in.</button>
   <div id="listen-again" style="display:none; margin-top: 48px; text-align: center; width: 100%;">
     <div style="font-size: 11px; color: var(--black); opacity: 0.35; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px;">Play another set</div>
+    <button class="set-btn" id="set-btn-1" onclick="loadSet('MVP 1')">Set 1</button>
     <button class="set-btn" id="set-btn-1" onclick="loadSet('MVP 1')">Set 1</button>
     <button class="set-btn" onclick="loadSet('MVP 1.2')">Set 2</button>
     <button class="set-btn" onclick="loadSet('MVP 1.3')">Set 3</button>
@@ -933,6 +935,36 @@ document.getElementById('s1').addEventListener('click', function() {
     return;
   }
 
+  if (window._skipEntry) {
+    window._skipEntry = false;
+    if (window._resumeMode && window._resumeCur !== undefined) {
+      sess.cur = window._resumeCur;
+      window._resumeMode = false;
+      window._resumeCur = undefined;
+      try {
+        var silentAudioR = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+          'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+        silentAudioR.volume = 0;
+        silentAudioR.play().catch(function(){});
+      } catch(e) {}
+      if (widgetReady) { widget.skip(sess.tOrder[sess.cur]); sess._primedIdx = sess.tOrder[sess.cur]; }
+      show('s3');
+      setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
+      return;
+    }
+    sess.tOrder = shuffle([0,1,2,3,4]);
+    try {
+      var silentAudioP = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+        'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+      silentAudioP.volume = 0;
+      silentAudioP.play().catch(function(){});
+    } catch(e) {}
+    if (widgetReady) { widget.skip(sess.tOrder[0]); sess._primedIdx = sess.tOrder[0]; }
+    show('s3');
+    setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
+    return;
+  }
+
   // If resuming abandoned session within 24hrs — skip entry, go straight to track
   if (window._resumeMode && window._resumeCur !== undefined) {
     sess.cur = window._resumeCur;
@@ -1216,14 +1248,21 @@ function getAbandoned(playlist) {
   var all = LS.get('abandonedSets') || {};
   var cutoff = 24 * 60 * 60 * 1000;
   var now = Date.now();
+  // Clean expired entries
   var changed = false;
   Object.keys(all).forEach(function(k) {
     if (now - all[k].timestamp > cutoff) { delete all[k]; changed = true; }
   });
   if (changed) LS.set('abandonedSets', all);
+  // Specific playlist requested (e.g. for Resume button or pendingSet)
   if (playlist) return all[playlist] || null;
-  var keys = Object.keys(all);
-  return keys.length > 0 ? all[keys[0]] : null;
+  // No playlist — auto-resume: skip MVP 1 since it has its own Set 1 button
+  // Return the most recently touched non-MVP-1 entry
+  var keys = Object.keys(all).filter(function(k) { return k !== 'MVP 1'; });
+  if (!keys.length) return null;
+  return keys.reduce(function(best, k) {
+    return all[k].timestamp > best.timestamp ? all[k] : best;
+  }, all[keys[0]]);
 }
 
 function isReturning() {
@@ -1274,7 +1313,7 @@ function initUserState() {
       sess.playlist = abandoned.playlist;
       sess.tOrder = abandoned.tOrder;
       sess.entryState = abandoned.entryState;
-      // cur will be set after entry question
+      sess.log = abandoned.log || [];
       window._resumeCur = abandoned.cur;
       window._resumeMode = true;
     } else if (!nextSet) {
