@@ -1302,8 +1302,12 @@ function initUserState() {
     if (abPending) {
       sess.tOrder = abPending.tOrder;
       sess.log = abPending.log || [];
+      sess.entryState = abPending.entryState || sess.entryState;
       window._resumeCur = abPending.cur;
       window._resumeMode = true;
+    } else if (abandoned && abandoned.entryState) {
+      // No abandoned session for this set — restore entryState from most recent session
+      sess.entryState = abandoned.entryState;
     }
     window._skipEntry = true;
   } else {
