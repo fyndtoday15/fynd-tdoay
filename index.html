@@ -33,6 +33,10 @@ html.assign-top, body.assign-top { background: var(--black); }
 .s1-word { font-size: clamp(52px,12vw,88px); font-weight: 400; color: var(--black); letter-spacing: -0.02em; user-select: none; margin-bottom: 32px; }
 .s1-intro { font-size: clamp(15px,3.8vw,18px); color: var(--black); opacity: 0.7; text-align: center; line-height: 1.6; max-width: 320px; margin-bottom: 48px; }
 .s1-hint { font-size: 15px; color: var(--black); opacity: 0.7; letter-spacing: 0.12em; text-transform: uppercase; animation: ph 3s ease-in-out infinite; }
+#s1.set-reload { background: var(--black); }
+#s1.set-reload .s1-word,
+#s1.set-reload .s1-intro { display: none; }
+#s1.set-reload .s1-hint { color: var(--bg); }
 @keyframes ph { 0%,100%{opacity:.4} 50%{opacity:.8} }
 
 /* S2 — ENTRY */
@@ -328,6 +332,16 @@ html.assign-top, body.assign-top { background: var(--black); }
         if (iframe) {
           iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(URLS[pending]) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
         }
+        // Switch s1 to black tap-to-listen screen
+        var s1el = document.getElementById('s1');
+        if (s1el) {
+          s1el.classList.add('set-reload');
+          var hint = s1el.querySelector('.s1-hint');
+          if (hint) hint.textContent = 'tap to listen';
+        }
+        var tc = document.getElementById('theme-color');
+        if (tc) tc.content = '#000000';
+        document.documentElement.style.background = '#000000';
         return;
       }
       // Find most recently active abandoned session for iframe src
