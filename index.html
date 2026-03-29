@@ -1177,7 +1177,9 @@ function getNextSet() {
     return completed.indexOf(p) === -1;
   });
   if (remaining.length === 0) return null;
-  // Return a random uncompleted set
+  // Always return MVP 1 first if not yet completed — preserves correct order
+  // and ensures iframe default src matches sess.playlist
+  if (remaining.indexOf('MVP 1') !== -1) return 'MVP 1';
   return remaining[Math.floor(Math.random() * remaining.length)];
 }
 
