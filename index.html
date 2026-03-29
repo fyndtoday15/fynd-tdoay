@@ -332,7 +332,7 @@ html.assign-top, body.assign-top { background: var(--black); }
         if (iframe) {
           iframe.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(URLS[pending]) + '&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
         }
-        // Switch s1 to black tap-to-listen screen
+        // Switch s1 to full black tap-to-listen screen
         var s1el = document.getElementById('s1');
         if (s1el) {
           s1el.classList.add('set-reload');
@@ -342,6 +342,11 @@ html.assign-top, body.assign-top { background: var(--black); }
         var tc = document.getElementById('theme-color');
         if (tc) tc.content = '#000000';
         document.documentElement.style.background = '#000000';
+        document.body.style.background = '#000000';
+        var st = document.getElementById('safe-top');
+        var sb = document.getElementById('safe-bot');
+        if (st) { st.style.transition = 'none'; st.style.background = '#000000'; }
+        if (sb) { sb.style.transition = 'none'; sb.style.background = '#000000'; }
         return;
       }
       // Find most recently active abandoned session for iframe src
