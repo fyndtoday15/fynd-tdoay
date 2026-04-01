@@ -748,7 +748,7 @@ function playTrack(idx) {
       var _ti = sess.tOrder[sess.cur];
       if (_ti !== undefined) {
         var _tr = getTrack(sess.playlist, _ti);
-        var _week = new Date().toISOString().slice(0,10);
+        var _date = new Date().toISOString().slice(0,10);
         localStorage.setItem('fynd_pendingAbandoned', JSON.stringify({
           sessionId: sess.id,
           email: LS.get('email') || '',
@@ -757,7 +757,7 @@ function playTrack(idx) {
           trackId: 'T00' + (sess.cur + 1),
           trackTitle: _tr.title + ' — ' + _tr.artist,
           playlist: sess.playlist,
-          week: _week,
+          date: _date,
           visitNumber: window._visitNumber || 1,
           daysSinceLastVisit: window._daysSinceLastVisit,
           startTime: Date.now(),
@@ -849,7 +849,7 @@ document.getElementById('thumb-down').addEventListener('click', function() {
   var tr = getTrack(sess.playlist, ti);
   var sessionTrackId = 'T00' + (sess.cur + 1);
   var trackTitle = tr.title + ' — ' + tr.artist;
-  var week = new Date().toISOString().slice(0,10);
+  var date = new Date().toISOString().slice(0,10);
 
   fetch('/.netlify/functions/log-session', {
     method: 'POST',
@@ -859,7 +859,7 @@ document.getElementById('thumb-down').addEventListener('click', function() {
       email: LS.get('email') || '',
       firstName: LS.get('firstName') || '',
       entryState: sess.entryState,
-      assignments: [{ trackId: sessionTrackId, trackTitle: trackTitle, duration: dur, postState: 'Skipped', reaction: 'Down', week: week, playlist: sess.playlist, visitNumber: window._visitNumber || 1, daysSinceLastVisit: window._daysSinceLastVisit }],
+      assignments: [{ trackId: sessionTrackId, trackTitle: trackTitle, duration: dur, postState: 'Skipped', reaction: 'Down', date: date, playlist: sess.playlist, visitNumber: window._visitNumber || 1, daysSinceLastVisit: window._daysSinceLastVisit }],
     }),
   }).catch(function(err) { console.error('Skip log error:', err); });
 
@@ -907,7 +907,7 @@ function doReveal(ps) {
   sess.log.push(assignment);
 
   // Send this track's data immediately — don't wait for email
-  var week = new Date().toISOString().slice(0,10);
+  var date = new Date().toISOString().slice(0,10);
   fetch('/.netlify/functions/log-session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -916,7 +916,7 @@ function doReveal(ps) {
       email: LS.get('email') || '',
       firstName: LS.get('firstName') || '',
       entryState: sess.entryState,
-      assignments: [{ trackId: sessionTrackId, trackTitle: trackTitle, duration: assignment.duration, postState: assignment.postState, week: week, playlist: sess.playlist, reaction: sess.reaction, visitNumber: window._visitNumber || 1, daysSinceLastVisit: window._daysSinceLastVisit }],
+      assignments: [{ trackId: sessionTrackId, trackTitle: trackTitle, duration: assignment.duration, postState: assignment.postState, date: date, playlist: sess.playlist, reaction: sess.reaction, visitNumber: window._visitNumber || 1, daysSinceLastVisit: window._daysSinceLastVisit }],
     }),
   }).catch(function(err) { console.error('Track log error:', err); });
 
@@ -1429,7 +1429,7 @@ var PLAYLIST_VERSION = '1';
           email: pending.email || '',
           firstName: pending.firstName || '',
           entryState: pending.entryState,
-          assignments: [{ trackId: pending.trackId, trackTitle: pending.trackTitle, duration: dur, postState: 'Abandoned', week: pending.week, playlist: pending.playlist, reaction: '', visitNumber: pending.visitNumber || 1, daysSinceLastVisit: pending.daysSinceLastVisit }],
+          assignments: [{ trackId: pending.trackId, trackTitle: pending.trackTitle, duration: dur, postState: 'Abandoned', date: pending.date, playlist: pending.playlist, reaction: '', visitNumber: pending.visitNumber || 1, daysSinceLastVisit: pending.daysSinceLastVisit }],
         }),
       }).catch(function(){});
     }
@@ -1458,13 +1458,13 @@ window.addEventListener('pagehide', function() {
   var tr = getTrack(sess.playlist, ti);
   var sessionTrackId = 'T00' + (sess.cur + 1);
   var trackTitle = tr.title + ' — ' + tr.artist;
-  var week = new Date().toISOString().slice(0,10);
+  var date = new Date().toISOString().slice(0,10);
   var payload = JSON.stringify({
     sessionId: sess.id,
     email: LS.get('email') || '',
     firstName: LS.get('firstName') || '',
     entryState: sess.entryState,
-    assignments: [{ trackId: sessionTrackId, trackTitle: trackTitle, duration: dur, postState: 'Abandoned', week: week, playlist: sess.playlist, reaction: '', visitNumber: window._visitNumber || 1, daysSinceLastVisit: window._daysSinceLastVisit }],
+    assignments: [{ trackId: sessionTrackId, trackTitle: trackTitle, duration: dur, postState: 'Abandoned', date: date, playlist: sess.playlist, reaction: '', visitNumber: window._visitNumber || 1, daysSinceLastVisit: window._daysSinceLastVisit }],
   });
   if (navigator.sendBeacon) {
     try {
