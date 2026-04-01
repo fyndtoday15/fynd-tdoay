@@ -1146,9 +1146,6 @@ document.getElementById('email-sub').addEventListener('click', function() {
   // Save to localStorage for return visits
   var hp = document.getElementById('hp-field') ? document.getElementById('hp-field').value : '';
   var consentChecked = document.getElementById('consent-check') ? document.getElementById('consent-check').checked : false;
-  LS.set('email', email);
-  LS.set('firstName', firstName);
-  LS.set('onEmailScreen', false);
   if (!firstName) { document.getElementById('name-in').style.borderBottomColor = 'rgba(0,0,0,0.9)'; return; }
   var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   var emailError = document.getElementById('email-error');
@@ -1164,6 +1161,9 @@ document.getElementById('email-sub').addEventListener('click', function() {
     return;
   }
   if (consentError) consentError.style.display = 'none';
+  LS.set('email', email);
+  LS.set('firstName', firstName);
+  LS.set('onEmailScreen', false);
   document.getElementById('name-in').style.display = 'none';
   document.getElementById('email-in').style.display = 'none';
   document.getElementById('email-sub').style.display = 'none';
@@ -1413,7 +1413,7 @@ function initUserState() {
 
 // Dev reset — add ?reset=true to URL to clear all localStorage
 if (window.location.search.indexOf('reset=true') !== -1) {
-  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion'];
+  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion','pendingSet'];
   keys.forEach(function(k) { try { localStorage.removeItem('fynd_' + k); } catch(e) {} });
   try { localStorage.removeItem('fynd_pendingAbandoned'); } catch(e) {}
   window.location.href = window.location.pathname;
