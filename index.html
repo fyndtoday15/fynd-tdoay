@@ -12,8 +12,8 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root { --bg: #FCFBF4; --black: #000000; --f: 'DejaVu LGC Sans','DM Sans',Arial,sans-serif; }
-html { background: var(--bg); transition: background 0.4s ease; }
-body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--f); -webkit-font-smoothing: antialiased; transition: background 0.4s ease; }
+html { background: var(--bg); }
+body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--f); -webkit-font-smoothing: antialiased; }
 html.listen-mode, body.listen-mode { background: var(--black); }
 html.assign-top, body.assign-top { background: var(--black); }
 
@@ -351,12 +351,11 @@ html.assign-top, body.assign-top { background: var(--black); }
       // Find most recently active abandoned session for iframe src
       var abandonedSets = JSON.parse(localStorage.getItem('fynd_abandonedSets')) || {};
       var onEmail = JSON.parse(localStorage.getItem('fynd_onEmailScreen'));
-      var cutoff = 24 * 60 * 60 * 1000;
       var now = Date.now();
       var best = null;
       Object.keys(abandonedSets).forEach(function(k) {
         var a = abandonedSets[k];
-        if (a && a.timestamp && (now - a.timestamp < cutoff)) {
+        if (a && a.timestamp) {
           if (!best || a.timestamp > best.timestamp) best = a;
         }
       });
@@ -749,7 +748,7 @@ function playTrack(idx) {
       var _ti = sess.tOrder[sess.cur];
       if (_ti !== undefined) {
         var _tr = getTrack(sess.playlist, _ti);
-        var _week = 'W' + String(Math.max(1, Math.ceil((Date.now() - new Date('2026-03-15').getTime()) / (7*24*60*60*1000)))).padStart(2,'0');
+        var _week = new Date().toISOString().slice(0,10);
         localStorage.setItem('fynd_pendingAbandoned', JSON.stringify({
           sessionId: sess.id,
           email: LS.get('email') || '',
@@ -780,11 +779,11 @@ function playTrack(idx) {
       prompt.style.pointerEvents = 'all';
     }, 30000);
 
-    // At 90s — hard open panel regardless
+    // At 60s — hard open panel regardless
     autoTimer = setTimeout(function() {
       if (widget) widget.pause();
       stopDot();
-      // Hide thumbs when panel auto-opens at 90s
+      // Hide thumbs when panel auto-opens at 60s
       document.getElementById('thumbs-wrap').classList.remove('show');
       clearTimeout(thumbsTimer);
       if (!document.getElementById('assign-panel').classList.contains('open')) {
@@ -850,7 +849,7 @@ document.getElementById('thumb-down').addEventListener('click', function() {
   var tr = getTrack(sess.playlist, ti);
   var sessionTrackId = 'T00' + (sess.cur + 1);
   var trackTitle = tr.title + ' — ' + tr.artist;
-  var week = 'W' + String(Math.max(1, Math.ceil((Date.now() - new Date('2026-03-15').getTime()) / (7*24*60*60*1000)))).padStart(2,'0');
+  var week = new Date().toISOString().slice(0,10);
 
   fetch('/.netlify/functions/log-session', {
     method: 'POST',
@@ -908,7 +907,7 @@ function doReveal(ps) {
   sess.log.push(assignment);
 
   // Send this track's data immediately — don't wait for email
-  var week = 'W' + String(Math.max(1, Math.ceil((Date.now() - new Date('2026-03-15').getTime()) / (7*24*60*60*1000)))).padStart(2,'0');
+  var week = new Date().toISOString().slice(0,10);
   fetch('/.netlify/functions/log-session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -966,7 +965,6 @@ document.getElementById('s1').addEventListener('click', function() {
     var cl1 = document.getElementById('consent-label'); if (cl1) cl1.style.display = 'none';
     var again = document.getElementById('listen-again');
     if (again) { again.style.display = 'block'; updateSetButtons(); }
-    if (window._nextSetPlaylist) sess.playlist = window._nextSetPlaylist;
     show('s6');
     return;
   }
@@ -1091,6 +1089,7 @@ document.getElementById('btn-stop').addEventListener('click', function() {
     document.getElementById('email-in').style.display = 'none';
     document.getElementById('name-in').style.display = 'none';
     document.getElementById('email-sub').style.display = 'none';
+    var clS = document.getElementById('consent-label'); if (clS) clS.style.display = 'none';
     var again = document.getElementById('listen-again');
     if (again) { again.style.display = 'block'; updateSetButtons(); }
   }
@@ -1110,6 +1109,7 @@ document.getElementById('recap-continue').addEventListener('click', function() {
     document.getElementById('email-in').style.display = 'none';
     document.getElementById('name-in').style.display = 'none';
     document.getElementById('email-sub').style.display = 'none';
+    var clR = document.getElementById('consent-label'); if (clR) clR.style.display = 'none';
     var again = document.getElementById('listen-again');
     if (again) { again.style.display = 'block'; updateSetButtons(); }
     show('s6');
@@ -1252,14 +1252,9 @@ var LS = {
 
 var PLAYLIST_ORDER = ['MVP 1', 'MVP 1.2', 'MVP 1.3', 'MVP 1.4', 'MVP 1.5'];
 
-function getNextSet() {
+function allSetsComplete() {
   var completed = LS.get('completedSets') || [];
-  var remaining = PLAYLIST_ORDER.filter(function(p) {
-    return completed.indexOf(p) === -1;
-  });
-  if (remaining.length === 0) return null;
-  // Return a random uncompleted set
-  return remaining[Math.floor(Math.random() * remaining.length)];
+  return PLAYLIST_ORDER.every(function(p) { return completed.indexOf(p) !== -1; });
 }
 
 function markSetComplete(playlistName) {
@@ -1297,14 +1292,6 @@ function clearAbandoned() {
 
 function getAbandoned(playlist) {
   var all = LS.get('abandonedSets') || {};
-  var cutoff = 24 * 60 * 60 * 1000;
-  var now = Date.now();
-  // Clean expired entries
-  var changed = false;
-  Object.keys(all).forEach(function(k) {
-    if (now - all[k].timestamp > cutoff) { delete all[k]; changed = true; }
-  });
-  if (changed) LS.set('abandonedSets', all);
   if (playlist) return all[playlist] || null;
   // No playlist specified — return most recently active entry
   var keys = Object.keys(all);
@@ -1326,7 +1313,6 @@ function markReturning() {
 // On arrival — check state and set up accordingly
 function initUserState() {
   var returning = isReturning();
-  var nextSet = getNextSet();
   var savedEmail = LS.get('email') || '';
   var savedName = LS.get('firstName') || '';
 
@@ -1362,10 +1348,9 @@ function initUserState() {
       sess.log = abandoned.log || [];
       window._resumeCur = abandoned.cur;
       window._resumeMode = true;
-    } else if (!nextSet) {
+    } else if (allSetsComplete()) {
       window._allSetsComplete = true;
     } else {
-      sess.playlist = nextSet;
       window._resumeMode = false;
     }
   } else {
@@ -1400,15 +1385,15 @@ function initUserState() {
     var shouldRestore = onEmailScreen || (returning && completedSetsCheck.length > 0 && !abandoned);
     if (shouldRestore) {
       window._restoreSetScreen = true;
-      window._nextSetPlaylist = nextSet;
     }
   }
 }
 
 // Dev reset — add ?reset=true to URL to clear all localStorage
 if (window.location.search.indexOf('reset=true') !== -1) {
-  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit'];
+  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion'];
   keys.forEach(function(k) { try { localStorage.removeItem('fynd_' + k); } catch(e) {} });
+  try { localStorage.removeItem('fynd_pendingAbandoned'); } catch(e) {}
   window.location.href = window.location.pathname;
 }
 
@@ -1473,7 +1458,7 @@ window.addEventListener('pagehide', function() {
   var tr = getTrack(sess.playlist, ti);
   var sessionTrackId = 'T00' + (sess.cur + 1);
   var trackTitle = tr.title + ' — ' + tr.artist;
-  var week = 'W' + String(Math.max(1, Math.ceil((Date.now() - new Date('2026-03-15').getTime()) / (7*24*60*60*1000)))).padStart(2,'0');
+  var week = new Date().toISOString().slice(0,10);
   var payload = JSON.stringify({
     sessionId: sess.id,
     email: LS.get('email') || '',
