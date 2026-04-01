@@ -400,6 +400,11 @@ html.assign-top, body.assign-top { background: var(--black); }
   <input class="email-input" id="email-in" type="email" placeholder="your email" autocomplete="email" autocapitalize="none">
   <div id="email-error" style="display:none; font-size:12px; color:rgba(0,0,0,0.6); margin-top:8px; letter-spacing:0.04em;">Please enter a valid email address.</div>
   <input type="text" id="hp-field" name="website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true">
+  <label style="display:flex;align-items:flex-start;gap:10px;max-width:280px;margin:20px auto 0;cursor:pointer;text-align:left;">
+    <input type="checkbox" id="consent-check" style="margin-top:3px;flex-shrink:0;cursor:pointer;">
+    <span style="font-size:11px;color:var(--black);opacity:0.5;line-height:1.5;letter-spacing:0.04em;">I agree to receive updates from FYND TODAY. We'll only use your email to share what comes next.</span>
+  </label>
+  <div id="consent-error" style="display:none;font-size:11px;color:rgba(0,0,0,0.6);margin-top:6px;letter-spacing:0.04em;">Please check the box to continue.</div>
   <button class="email-sub" id="email-sub">I'm in.</button>
   <div id="listen-again" style="display:none; margin-top: 48px; text-align: center; width: 100%;">
     <div style="font-size: 11px; color: var(--black); opacity: 0.35; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px;">Play another set</div>
@@ -1092,6 +1097,7 @@ document.getElementById('email-sub').addEventListener('click', function() {
   var email = document.getElementById('email-in').value.trim();
   // Save to localStorage for return visits
   var hp = document.getElementById('hp-field') ? document.getElementById('hp-field').value : '';
+  var consentChecked = document.getElementById('consent-check') ? document.getElementById('consent-check').checked : false;
   LS.set('email', email);
   LS.set('firstName', firstName);
   LS.set('onEmailScreen', false);
@@ -1104,9 +1110,18 @@ document.getElementById('email-sub').addEventListener('click', function() {
     return;
   }
   if (emailError) emailError.style.display = 'none';
+  var consentError = document.getElementById('consent-error');
+  if (!consentChecked) {
+    if (consentError) consentError.style.display = 'block';
+    return;
+  }
+  if (consentError) consentError.style.display = 'none';
   document.getElementById('name-in').style.display = 'none';
   document.getElementById('email-in').style.display = 'none';
   document.getElementById('email-sub').style.display = 'none';
+  var consentLabel = document.querySelector('label:has(#consent-check)');
+  if (consentLabel) consentLabel.style.display = 'none';
+  if (document.getElementById('consent-error')) document.getElementById('consent-error').style.display = 'none';
   var h = document.getElementById('email-head');
   h.textContent = "You'll hear when something new arrives.";
   h.style.fontSize = '18px';
@@ -1128,6 +1143,7 @@ document.getElementById('email-sub').addEventListener('click', function() {
       firstName: firstName,
       entryState: sess.entryState,
       hp: hp,
+      consent: consentChecked,
       emailUpdate: true,
     }),
   }).then(function(r) { return r.json(); })
