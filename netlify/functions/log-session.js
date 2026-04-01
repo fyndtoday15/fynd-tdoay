@@ -83,6 +83,10 @@ exports.handler = async function(event, context) {
 
   // EMAIL + NAME — write a dedicated record so it never fails
   if (data.emailUpdate) {
+    // Require consent for email records
+    if (!data.consent) {
+      return { statusCode: 400, body: 'Consent required' };
+    }
     try {
       const response = await fetch(BASE_URL, {
         method: 'POST',
@@ -100,6 +104,7 @@ exports.handler = async function(event, context) {
               'Duration': 0,
               'Position': '',
               'Week': '',
+              'Consent': data.consent ? 'Yes' : 'No',
             }
           }]
         }),
