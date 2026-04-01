@@ -103,7 +103,7 @@ exports.handler = async function(event, context) {
               'Playlist': '',
               'Duration': 0,
               'Position': '',
-              'Week': '',
+              'Date': '',
               'Consent': data.consent ? 'Yes' : 'No',
             }
           }]
@@ -155,7 +155,7 @@ exports.handler = async function(event, context) {
         'Duration': Math.min(Math.max(Number(a.duration) || 0, 0), 60),
         'Position': sanitizeString(a.postState, 50),
         'Email': sanitizeString(email, 200),
-        'Week': sanitizeString(a.week, 10),
+        'Date': sanitizeString(a.date, 10),
         'Reaction': sanitizeString(a.reaction, 20),
         'Visit Number': Math.min(Math.max(Number(a.visitNumber) || 1, 1), 9999),
         'Days Since Last Visit': (a.daysSinceLastVisit !== undefined && a.daysSinceLastVisit !== null && a.daysSinceLastVisit !== '') ? Math.min(Number(a.daysSinceLastVisit), 9999) : null,
