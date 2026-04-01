@@ -894,6 +894,9 @@ function doReveal(ps) {
   sess.reaction = '';
   document.getElementById('r-title').textContent = tr.title;
   document.getElementById('r-artist').textContent = tr.artist;
+  // Hide stop button on last track — no reason to stop now
+  var stopBtn = document.getElementById('btn-stop');
+  if (stopBtn) stopBtn.style.display = sess.cur === 4 ? 'none' : '';
   show('s5');
   sess.listenStart = null; // prevent pagehide beacon from double-logging
   sess.cur++;
