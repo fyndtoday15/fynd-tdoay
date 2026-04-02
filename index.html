@@ -1060,6 +1060,22 @@ document.getElementById('s1').addEventListener('click', function() {
   // Returning user with abandoned session — route to sets page
   // Resume Set X button handles navigating back into listen
   if (window._resumeMode) {
+    // MVP 1 with no email yet — skip sets page, go straight back to listening
+    if (sess.playlist === 'MVP 1' && !LS.get('email')) {
+      window._resumeMode = false;
+      sess.cur = window._resumeCur || 0;
+      window._resumeCur = undefined;
+      try {
+        var silentAudioM = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAA' +
+          'EAAQARAAAAAgABAAIAZGF0YQAAAAA=');
+        silentAudioM.volume = 0;
+        silentAudioM.play().catch(function(){});
+      } catch(e) {}
+      if (widgetReady) { widget.skip(sess.tOrder[sess.cur]); sess._primedIdx = sess.tOrder[sess.cur]; }
+      show('s3');
+      setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 300);
+      return;
+    }
     window._resumeMode = false;
     var h = document.getElementById('email-head');
     if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
