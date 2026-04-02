@@ -854,41 +854,14 @@ document.getElementById('ready-prompt').addEventListener('click', function() {
   openPanel(function(ps) { doReveal(ps); });
 });
 
-// Replay button — restart current track, reset timers, mark replay
+// Replay button — restart audio only, keep panel open, no timer resets
+// Duration keeps counting from original start, no new prompts or thumbs
 document.getElementById('replay-btn').addEventListener('click', function() {
   sess.replay = true;
   var rb = document.getElementById('replay-btn');
   if (rb) rb.classList.remove('show');
-  clearTimeout(readyTimer);
-  clearTimeout(autoTimer);
-  clearTimeout(thumbsTimer);
-  document.getElementById('thumbs-wrap').classList.remove('show');
-  document.getElementById('ready-prompt').classList.remove('show');
-  document.getElementById('ready-prompt').style.pointerEvents = 'none';
-  sess.listenStart = Date.now();
-  widget.skip(sess.tOrder[sess.cur]);
-  setTimeout(function() { widget.play(); }, 400);
-  // Restart timers
-  thumbsTimer = setTimeout(function() {
-    document.getElementById('thumbs-wrap').classList.add('show');
-  }, 5000);
-  readyTimer = setTimeout(function() {
-    var prompt = document.getElementById('ready-prompt');
-    prompt.classList.add('show');
-    prompt.style.pointerEvents = 'all';
-  }, 30000);
-  autoTimer = setTimeout(function() {
-    if (widget) widget.pause();
-    stopDot();
-    document.getElementById('thumbs-wrap').classList.remove('show');
-    clearTimeout(thumbsTimer);
-    var rb2 = document.getElementById('replay-btn');
-    if (rb2) rb2.classList.add('show');
-    if (!document.getElementById('assign-panel').classList.contains('open')) {
-      sess.triggered = 'auto';
-      openPanel(function(ps) { doReveal(ps); });
-    }
-  }, 60000);
+  widget.seekTo(0);
+  setTimeout(function() { widget.play(); }, 200);
 });
 
 // Thumb up — hide thumbs, store reaction, music keeps playing
