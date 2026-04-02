@@ -152,7 +152,7 @@ exports.handler = async function(event, context) {
         'Track ID': sanitizeString(a.trackId, 20),
         'Track Title': sanitizeString(a.trackTitle, 200),
         'Playlist': sanitizeString(a.playlist, 50),
-        'Duration': Math.min(Math.max(Number(a.duration) || 0, 0), 60),
+        'Duration': Math.max(Number(a.duration) || 0, 0),
         'Position': sanitizeString(a.postState, 50),
         'Email': sanitizeString(email, 200),
         'Date': sanitizeString(a.date, 10),
@@ -160,6 +160,7 @@ exports.handler = async function(event, context) {
         'Visit Number': Math.min(Math.max(Number(a.visitNumber) || 1, 1), 9999),
         'Days Since Last Visit': (a.daysSinceLastVisit !== undefined && a.daysSinceLastVisit !== null && a.daysSinceLastVisit !== '') ? Math.min(Number(a.daysSinceLastVisit), 9999) : null,
         'Triggered': sanitizeString(a.triggered, 20),
+        'Replay': sanitizeString(a.replay, 5),
       }
     };
   });
