@@ -197,7 +197,7 @@ html.assign-top, body.assign-top { background: var(--black); }
 .recap-track:first-of-type { border-top: 1px solid rgba(0,0,0,0.08); }
 .recap-song { font-size: clamp(15px,3.8vw,17px); font-weight: 400; color: var(--black); line-height: 1.4; }
 .recap-direction { font-size: clamp(12px,3vw,14px); color: var(--black); opacity: 0.4; margin-top: 4px; line-height: 1.4; }
-.recap-continue { display: block; margin: 36px auto 0; font-family: var(--f); font-size: 14px; color: var(--black); background: none; border: 1px solid rgba(0,0,0,0.25); border-radius: 2px; padding: 14px 40px; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; width: 100%; max-width: 280px; animation: ph 3s ease-in-out infinite; }
+.recap-continue { display: block; margin: 36px auto 48px; font-family: var(--f); font-size: 14px; color: var(--black); background: none; border: 1px solid rgba(0,0,0,0.25); border-radius: 2px; padding: 14px 40px; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; width: 100%; max-width: 280px; animation: ph 3s ease-in-out infinite; }
 
 /* S6 — EMAIL */
 #s6 { background: var(--bg); justify-content: center; }
@@ -1557,6 +1557,11 @@ window.addEventListener('pagehide', function() {
 });
 
 // Set screen restore handled in s1 tap);
+
+// Allow s7 recap to scroll on Safari
+document.getElementById('s7').addEventListener('touchmove', function(e) {
+  e.stopPropagation();
+}, { passive: true });
 
 // Prevent s3 from swallowing touchmove so assign panel can scroll on Safari
 document.getElementById('s3').addEventListener('touchmove', function(e) {
