@@ -44,22 +44,37 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': BREVO_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        templateId: 1,
-        to: [{ email: email, name: firstName }],
-        params: { firstName: firstName },
+    // Run contact creation and welcome email in parallel
+    const [contactResponse, emailResponse] = await Promise.all([
+      fetch('https://api.brevo.com/v3/contacts', {
+        method: 'POST',
+        headers: {
+          'api-key': BREVO_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          attributes: { FIRSTNAME: firstName },
+          updateEnabled: true,
+        }),
       }),
-    });
+      fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': BREVO_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          templateId: 1,
+          to: [{ email: email, name: firstName }],
+          params: { firstName: firstName },
+        }),
+      }),
+    ]);
 
-    const result = await response.json();
+    const result = await emailResponse.json();
 
-    if (!response.ok) {
+    if (!emailResponse.ok) {
       console.error('Brevo welcome error:', result);
       return {
         statusCode: 500,
