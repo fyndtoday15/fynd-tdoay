@@ -53,7 +53,7 @@ exports.handler = async function(event, context) {
     return { statusCode: 400, body: 'Invalid JSON' };
   }
 
-  const { email, firstName, playlist, log } = data;
+  const { email, firstName, playlist, log, entryState } = data;
 
   if (!email || !firstName || !playlist || !log || !log.length) {
     return { statusCode: 400, body: 'Missing required fields' };
@@ -84,6 +84,7 @@ exports.handler = async function(event, context) {
         params: {
           firstName: firstName,
           setName: setName,
+          entryState: entryState || '',
           tracks: recapTracks,
         },
       }),
