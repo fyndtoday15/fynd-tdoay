@@ -934,7 +934,8 @@ document.getElementById('thumb-down').addEventListener('click', function() {
       var _rn = LS.get('firstName') || '';
       var _rp = sess.playlist;
       var _rl = sess.log.slice();
-      if (_re) setTimeout(function() { sendRecapEmail(_re, _rn, _rp, _rl); }, 1000);
+      var _rs = sess.entryState || '';
+      if (_re) setTimeout(function() { sendRecapEmail(_re, _rn, _rp, _rl, _rs); }, 1000);
     })();
     show('s7');
   }
@@ -1153,7 +1154,8 @@ document.getElementById('btn-continue').addEventListener('click', function() {
       var _rn2 = LS.get('firstName') || '';
       var _rp2 = sess.playlist;
       var _rl2 = sess.log.slice();
-      if (_re2) setTimeout(function() { sendRecapEmail(_re2, _rn2, _rp2, _rl2); }, 1000);
+      var _rs2 = sess.entryState || '';
+      if (_re2) setTimeout(function() { sendRecapEmail(_re2, _rn2, _rp2, _rl2, _rs2); }, 1000);
     })();
     show('s7');
   }
@@ -1269,8 +1271,8 @@ document.getElementById('email-sub').addEventListener('click', function() {
   // Send recap email for Set 1 (email just collected) — 10s delay
   if (sess.log && sess.log.length > 0) {
     (function() {
-      var _e = email, _fn = firstName, _rp = sess.playlist, _rl = sess.log.slice();
-      setTimeout(function() { sendRecapEmail(_e, _fn, _rp, _rl); }, 1000);
+      var _e = email, _fn = firstName, _rp = sess.playlist, _rl = sess.log.slice(), _rs = sess.entryState || '';
+      setTimeout(function() { sendRecapEmail(_e, _fn, _rp, _rl, _rs); }, 1000);
     })();
   }
 });
@@ -1545,12 +1547,12 @@ var PLAYLIST_VERSION = '1';
 })();
 
 
-function sendRecapEmail(email, firstName, playlist, log) {
+function sendRecapEmail(email, firstName, playlist, log, entryState) {
   if (!email || !firstName) return;
   fetch('/.netlify/functions/send-recap', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email, firstName: firstName, playlist: playlist, log: log }),
+    body: JSON.stringify({ email: email, firstName: firstName, playlist: playlist, log: log, entryState: entryState || '' }),
   }).catch(function(err) { console.error('Recap email error:', err); });
 }
 
