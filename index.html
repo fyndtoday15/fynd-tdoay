@@ -933,8 +933,8 @@ document.getElementById('thumb-down').addEventListener('click', function() {
       var _re = LS.get('email') || '';
       var _rn = LS.get('firstName') || '';
       var _rp = sess.playlist;
-      var _rl = sess.log.slice();
-      if (_re) setTimeout(function() { sendRecapEmail(_re, _rn, _rp, _rl); }, 10000);
+      var _rl = getSavedLog(_rp);
+      if (_re) setTimeout(function() { sendRecapEmail(_re, _rn, _rp, _rl); clearSavedLog(_rp); }, 10000);
     })();
     show('s7');
   }
@@ -961,6 +961,8 @@ function doReveal(ps) {
   var trackTitle = tr.title + ' — ' + tr.artist;
   var assignment = { sessionId:sess.id, trackId:sessionTrackId, trackTitle:trackTitle, entryState:sess.entryState, postState:ps, duration:sess.dur };
   sess.log.push(assignment);
+  // Persist log to localStorage immediately after every answered track
+  persistLog(sess.playlist, sess.log);
 
   // Send this track's data immediately — don't wait for email
   var date = new Date().toISOString().slice(0,10);
@@ -1152,8 +1154,8 @@ document.getElementById('btn-continue').addEventListener('click', function() {
       var _re2 = LS.get('email') || '';
       var _rn2 = LS.get('firstName') || '';
       var _rp2 = sess.playlist;
-      var _rl2 = sess.log.slice();
-      if (_re2) setTimeout(function() { sendRecapEmail(_re2, _rn2, _rp2, _rl2); }, 10000);
+      var _rl2 = getSavedLog(_rp2);
+      if (_re2) setTimeout(function() { sendRecapEmail(_re2, _rn2, _rp2, _rl2); clearSavedLog(_rp2); }, 10000);
     })();
     show('s7');
   }
@@ -1267,12 +1269,13 @@ document.getElementById('email-sub').addEventListener('click', function() {
   }).catch(function(err) { console.error('Welcome email error:', err); });
 
   // Send recap email for Set 1 (email just collected) — 10s delay
-  if (sess.log && sess.log.length > 0) {
-    (function() {
-      var _e = email, _fn = firstName, _rp = sess.playlist, _rl = sess.log.slice();
-      setTimeout(function() { sendRecapEmail(_e, _fn, _rp, _rl); }, 10000);
-    })();
-  }
+  (function() {
+    var _e = email, _fn = firstName, _rp = sess.playlist;
+    var _rl = getSavedLog(_rp);
+    if (_rl.length > 0) {
+      setTimeout(function() { sendRecapEmail(_e, _fn, _rp, _rl); clearSavedLog(_rp); }, 10000);
+    }
+  })();
 });
 
 document.getElementById('email-in').addEventListener('keydown', function(e) {
@@ -1379,6 +1382,31 @@ function saveAbandoned() {
     timestamp: Date.now(),
   };
   LS.set('abandonedSets', all);
+  // Persist log separately so recap survives reloads/set switches
+  persistLog(sess.playlist, sess.log || []);
+}
+
+function persistLog(playlist, log) {
+  var all = LS.get('savedLogs') || {};
+  var existing = all[playlist] || [];
+  // Merge — add any entries not already tracked by trackId
+  var ids = existing.map(function(e) { return e.trackId; });
+  log.forEach(function(e) {
+    if (ids.indexOf(e.trackId) === -1) { existing.push(e); ids.push(e.trackId); }
+  });
+  all[playlist] = existing;
+  LS.set('savedLogs', all);
+}
+
+function getSavedLog(playlist) {
+  var all = LS.get('savedLogs') || {};
+  return all[playlist] || [];
+}
+
+function clearSavedLog(playlist) {
+  var all = LS.get('savedLogs') || {};
+  delete all[playlist];
+  LS.set('savedLogs', all);
 }
 
 function clearAbandoned() {
