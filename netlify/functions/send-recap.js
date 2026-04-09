@@ -81,6 +81,7 @@ exports.handler = async function(event, context) {
       body: JSON.stringify({
         templateId: 2,
         to: [{ email: email, name: firstName }],
+        subject: 'your ' + setName.toLowerCase() + '. your moment.',
         params: {
           firstName: firstName,
           setName: setName,
