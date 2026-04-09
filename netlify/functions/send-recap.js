@@ -5,6 +5,15 @@ const ALLOWED_ORIGINS = [
   'https://www.fyndtoday.com',
 ];
 
+const ENTRY_STATES = {
+  'Holding':     'Something is unresolved and the day keeps moving.',
+  'Between':     "Something finished. The next thing hasn't started yet.",
+  'Drifting':    "You're moving. Nothing specific is pulling you forward.",
+  'Unanchored':  'Everything keeps sliding past without landing.',
+  'Before':      "Something is in front of you. You haven't stepped into it yet.",
+  'Something Else': 'Something else entirely.',
+};
+
 const DIRECTION = {
   'Stay': 'When you want to stay with the moment.',
   'Move': "When you're ready to shift from the moment.",
@@ -85,7 +94,7 @@ exports.handler = async function(event, context) {
         params: {
           firstName: firstName,
           setName: setName,
-          entryState: entryState || '',
+          entryState: ENTRY_STATES[entryState] || entryState || '',
           tracks: recapTracks,
         },
       }),
