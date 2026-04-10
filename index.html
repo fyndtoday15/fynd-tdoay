@@ -928,6 +928,7 @@ document.getElementById('thumb-down').addEventListener('click', function() {
   } else {
     markSetComplete(sess.playlist);
     clearAbandoned();
+    LS.set('onEmailScreen', true);
     buildRecap();
     // Send recap email for Sets 2-5 (email already collected) — 10s delay
     (function() {
@@ -1158,6 +1159,7 @@ document.getElementById('btn-continue').addEventListener('click', function() {
   } else {
     markSetComplete(sess.playlist);
     clearAbandoned();
+    LS.set('onEmailScreen', true);
     buildRecap();
     // Send recap email for Sets 2-5 (email already collected) — 10s delay
     (function() {
@@ -1508,7 +1510,7 @@ function initUserState() {
 
 // Dev reset — add ?reset=true to URL to clear all localStorage
 if (window.location.search.indexOf('reset=true') !== -1) {
-  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion','pendingSet'];
+  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion','pendingSet','savedLogs'];
   keys.forEach(function(k) { try { localStorage.removeItem('fynd_' + k); } catch(e) {} });
   try { localStorage.removeItem('fynd_pendingAbandoned'); } catch(e) {}
   window.location.href = window.location.pathname;
