@@ -1269,6 +1269,7 @@ document.getElementById('recap-continue').addEventListener('click', function() {
   updateSetButtons();
   clearAbandoned();
   try { localStorage.removeItem('fynd_onRecapScreen'); } catch(e) {}
+  try { localStorage.removeItem('fynd_completedLog'); } catch(e) {}
   LS.set('onEmailScreen', true);
   var savedEmail = LS.get('email');
   if (savedEmail) {
