@@ -1086,6 +1086,8 @@ document.getElementById('s1').addEventListener('click', function() {
 
   if (window._skipEntry) {
     window._skipEntry = false;
+    // Restore entryState from localStorage — not re-selected on Sets 2-5
+    try { sess.entryState = localStorage.getItem('fynd_entryState') || sess.entryState || ''; } catch(e) {}
     if (window._resumeMode && window._resumeCur !== undefined) {
       sess.cur = window._resumeCur;
       window._resumeMode = false;
@@ -1161,6 +1163,7 @@ document.getElementById('s1').addEventListener('click', function() {
   // Show entry question
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
+    try { localStorage.setItem('fynd_entryState', state); } catch(e) {}
     show('s3');
     // Play immediately after screen switch — still within gesture context on Safari
     if (widgetReady) {
@@ -1553,7 +1556,7 @@ function initUserState() {
 
 // Dev reset — add ?reset=true to URL to clear all localStorage
 if (window.location.search.indexOf('reset=true') !== -1) {
-  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion','pendingSet','savedLogs','onRecapScreen'];
+  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion','pendingSet','savedLogs','onRecapScreen','entryState'];
   keys.forEach(function(k) { try { localStorage.removeItem('fynd_' + k); } catch(e) {} });
   try { localStorage.removeItem('fynd_pendingAbandoned'); } catch(e) {}
   window.location.href = window.location.pathname;
