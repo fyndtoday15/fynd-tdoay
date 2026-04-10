@@ -1212,8 +1212,8 @@ document.getElementById('recap-continue').addEventListener('click', function() {
   LS.set('onEmailScreen', true);
   var savedEmail = LS.get('email');
   if (savedEmail) {
-    // Email already saved — send recap now if set complete
-    if (sess.cur >= 5 && sess.log && sess.log.length > 0) {
+    // Email already saved — send Set 1 recap if complete (Sets 2-5 already fired from completion path)
+    if (sess.playlist === 'MVP 1' && sess.cur >= 5 && sess.log && sess.log.length > 0) {
       (function() {
         var _e = savedEmail, _fn = LS.get('firstName') || '', _rp = sess.playlist, _rl = sess.log.slice(), _rs = sess.entryState || '';
         setTimeout(function() { sendRecapEmail(_e, _fn, _rp, _rl, _rs); }, 1000);
