@@ -1007,9 +1007,14 @@ function doReveal(ps) {
   show('s5');
   sess.listenStart = null; // prevent pagehide beacon from double-logging
   try { localStorage.removeItem('fynd_pendingAbandoned'); } catch(e) {}
-  sess.cur++;
-  saveAbandoned();
-  sess.cur--;
+  // On last track — set recap flag so refresh routes to recap, not back to this track
+  if (sess.cur === 4) {
+    try { localStorage.setItem('fynd_onRecapScreen', '1'); } catch(e) {}
+  } else {
+    sess.cur++;
+    saveAbandoned();
+    sess.cur--;
+  }
 }
 
 // S1 tap
