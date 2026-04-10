@@ -701,7 +701,7 @@ function resetPanel() {
 }
 
 // SoundCloud
-var widget, widgetReady = false, readyTimer, autoTimer, thumbsTimer, playTimer;
+var widget, widgetReady = false, readyTimer, autoTimer, thumbsTimer;
 
 function initSC() {
   widget = SC.Widget(document.getElementById('sc'));
@@ -766,8 +766,7 @@ function playTrack(idx) {
       widget.play();
     }
     sess._gestureUnlocked = false;
-    clearTimeout(playTimer);
-    playTimer = setTimeout(function() {
+    setTimeout(function() {
       widget.play();
     }, 300);
     sess.listenStart = Date.now();
@@ -853,7 +852,6 @@ function playTrack(idx) {
 // Ready prompt tap — open panel immediately
 document.getElementById('ready-prompt').addEventListener('click', function() {
   clearTimeout(autoTimer);
-  clearTimeout(playTimer);
   if (widget) widget.pause();
   stopDot();
   document.getElementById('thumbs-wrap').classList.remove('show');
