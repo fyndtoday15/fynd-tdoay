@@ -591,8 +591,19 @@ function startDot() {
 
 function buildRecap() {
   var el = document.getElementById('recap-list');
+  var head = document.querySelector('.recap-head');
   el.innerHTML = '';
-  sess.log.forEach(function(a) {
+  var answered = sess.log.filter(function(a) { return a.postState && a.postState !== 'Skipped'; });
+  if (answered.length === 0) {
+    if (head) head.style.display = 'none';
+    var msg = document.createElement('div');
+    msg.style.cssText = 'font-size:clamp(15px,3.8vw,18px);color:var(--black);line-height:1.6;padding-top:8px;';
+    msg.textContent = 'Nothing landed this time. Something else is coming.';
+    el.appendChild(msg);
+    return;
+  }
+  if (head) head.style.display = '';
+  answered.forEach(function(a) {
     var wrap = document.createElement('div');
     wrap.className = 'recap-track';
     var song = document.createElement('div');
