@@ -1124,6 +1124,30 @@ document.getElementById('s1').addEventListener('click', function() {
 
   if (window._skipEntry) {
     window._skipEntry = false;
+    // Check if entry state has expired (24 hours) — if so clear and show entry screen
+    var entryStateExpired = false;
+    try {
+      var entryStateTime = parseInt(localStorage.getItem('fynd_entryStateTime') || '0', 10);
+      if (!entryStateTime || (Date.now() - entryStateTime) > 24 * 60 * 60 * 1000) {
+        entryStateExpired = true;
+        localStorage.removeItem('fynd_entryState');
+        localStorage.removeItem('fynd_entryStateTime');
+      }
+    } catch(e) {}
+    if (entryStateExpired) {
+      // Show entry screen — treat as fresh session
+      sess.tOrder = shuffle([0,1,2,3,4]);
+      buildList('entry-list', 'stmt', true, function(state) {
+        sess.entryState = state;
+        try { localStorage.setItem('fynd_entryState', state); } catch(e) {}
+        try { localStorage.setItem('fynd_entryStateTime', Date.now().toString()); } catch(e) {}
+        show('s3');
+        if (widgetReady) { sess._gestureUnlocked = true; }
+        setTimeout(function() { playTrack(sess.tOrder[sess.cur]); }, 100);
+      });
+      show('s2');
+      return;
+    }
     // Restore entryState from localStorage — not re-selected on Sets 2-5
     try { sess.entryState = localStorage.getItem('fynd_entryState') || sess.entryState || ''; } catch(e) {}
     if (window._resumeMode && window._resumeCur !== undefined) {
@@ -1202,6 +1226,7 @@ document.getElementById('s1').addEventListener('click', function() {
   buildList('entry-list', 'stmt', true, function(state) {
     sess.entryState = state;
     try { localStorage.setItem('fynd_entryState', state); } catch(e) {}
+    try { localStorage.setItem('fynd_entryStateTime', Date.now().toString()); } catch(e) {}
     show('s3');
     // Play immediately after screen switch — still within gesture context on Safari
     if (widgetReady) {
@@ -1621,7 +1646,7 @@ function initUserState() {
 
 // Dev reset — add ?reset=true to URL to clear all localStorage
 if (window.location.search.indexOf('reset=true') !== -1) {
-  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion','pendingSet','savedLogs','onRecapScreen','entryState','completedLog','allSetsEmailSent'];
+  var keys = ['returning','completedSets','email','firstName','abandoned','onEmailScreen','visitCount','lastVisit','abandonedSets','playlistVersion','pendingSet','savedLogs','onRecapScreen','entryState','completedLog','allSetsEmailSent','entryStateTime'];
   keys.forEach(function(k) { try { localStorage.removeItem('fynd_' + k); } catch(e) {} });
   try { localStorage.removeItem('fynd_pendingAbandoned'); } catch(e) {}
   window.location.href = window.location.pathname;
