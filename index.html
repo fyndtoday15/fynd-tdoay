@@ -1616,6 +1616,7 @@ function initUserState() {
   if (pendingSet) {
     LS.set('pendingSet', null);
     sess.playlist = pendingSet;
+    sess.log = []; // always start fresh — don't carry over log from a different set's abandoned record
     window._resumeMode = false;
     window._restoreSetScreen = false;
     var abPending = getAbandoned(pendingSet);
