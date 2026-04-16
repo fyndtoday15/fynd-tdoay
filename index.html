@@ -1210,6 +1210,26 @@ document.getElementById('s1').addEventListener('click', function() {
       return;
     }
     window._resumeMode = false;
+    // If entry state expired — show entry screen before sets page
+    if (window._entryStateExpired) {
+      window._entryStateExpired = false;
+      buildList('entry-list', 'stmt', true, function(state) {
+        sess.entryState = state;
+        try { localStorage.setItem('fynd_entryState', state); } catch(e) {}
+        try { localStorage.setItem('fynd_entryStateTime', Date.now().toString()); } catch(e) {}
+        var h = document.getElementById('email-head');
+        if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
+        document.getElementById('email-in').style.display = 'none';
+        document.getElementById('name-in').style.display = 'none';
+        document.getElementById('email-sub').style.display = 'none';
+        var clM = document.getElementById('consent-label'); if (clM) clM.style.display = 'none';
+        var againM = document.getElementById('listen-again');
+        if (againM) { againM.style.display = 'block'; updateSetButtons(); }
+        show('s6');
+      });
+      show('s2');
+      return;
+    }
     var h = document.getElementById('email-head');
     if (h) { h.textContent = "You'll hear when something new arrives."; h.style.fontSize = '18px'; h.style.opacity = '0.6'; }
     document.getElementById('email-in').style.display = 'none';
@@ -1647,8 +1667,8 @@ function initUserState() {
     var onRecapScreen = localStorage.getItem('fynd_onRecapScreen');
     var shouldRestore = (onEmailScreen && !!savedEmail) || (returning && completedSetsCheck.length > 0 && !abandoned && !!savedEmail);
     var shouldShowEmail = onEmailScreen && !savedEmail;
-    // Check entry state expiry for returning users going to sets page
-    if (shouldRestore) {
+    // Check entry state expiry for all returning users
+    if (returning) {
       try {
         var esTime = parseInt(localStorage.getItem('fynd_entryStateTime') || '0', 10);
         var esVal = localStorage.getItem('fynd_entryState');
@@ -1660,6 +1680,9 @@ function initUserState() {
           window._entryStateExpired = true;
           localStorage.removeItem('fynd_entryState');
           localStorage.removeItem('fynd_entryStateTime');
+        } else if (!esVal && !esTime) {
+          // Nothing stored at all — also expired
+          window._entryStateExpired = true;
         }
       } catch(e) {}
     }
