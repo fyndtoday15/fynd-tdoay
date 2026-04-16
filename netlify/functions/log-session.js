@@ -132,6 +132,54 @@ exports.handler = async function(event, context) {
     }
   }
 
+  // ENTRY STATE — write a dedicated record on every entry state selection
+  if (data.entryUpdate) {
+    try {
+      const response = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: HEADERS,
+        body: JSON.stringify({
+          records: [{
+            fields: {
+              'Session ID': sanitizeString(data.sessionId, 64),
+              'First Name': sanitizeString(data.firstName, 100),
+              'Email': sanitizeString(data.email, 200),
+              'Entry State': sanitizeString(data.entryState, 100),
+              'Track ID': 'ENTRY',
+              'Track Title': 'Entry State Record',
+              'Playlist': sanitizeString(data.playlist, 50),
+              'Duration': 0,
+              'Position': '',
+              'Date': sanitizeString(data.date, 10),
+              'Visit Number': Math.min(Math.max(Number(data.visitNumber) || 1, 1), 9999),
+              'Days Since Last Visit': (data.daysSinceLastVisit !== undefined && data.daysSinceLastVisit !== null && data.daysSinceLastVisit !== '') ? Math.min(Number(data.daysSinceLastVisit), 9999) : null,
+            }
+          }]
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Entry state record error:', result);
+        return {
+          statusCode: 500,
+          headers: { 'Access-Control-Allow-Origin': allowedOrigin },
+          body: JSON.stringify(result),
+        };
+      }
+
+      return {
+        statusCode: 200,
+        headers: { 'Access-Control-Allow-Origin': allowedOrigin },
+        body: JSON.stringify({ success: true }),
+      };
+    } catch(err) {
+      console.error('Entry update error:', err);
+      return { statusCode: 500, body: err.toString() };
+    }
+  }
+
   // TRACK LOG — create one record per track assignment
   const { sessionId, email, firstName, entryState, assignments } = data;
 
