@@ -1722,7 +1722,7 @@ var PLAYLIST_VERSION = '1';
     var pending = JSON.parse(localStorage.getItem('fynd_pendingAbandoned'));
     if (pending) {
       localStorage.removeItem('fynd_pendingAbandoned');
-      var dur = Math.min(Math.round((Date.now() - pending.startTime) / 1000), 60);
+      var dur = Math.round((Date.now() - pending.startTime) / 1000);
       fetch('/.netlify/functions/log-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1765,7 +1765,7 @@ initSC();
 window.addEventListener('pagehide', function() {
   if (!sess.listenStart) return;
   try { localStorage.removeItem('fynd_pendingAbandoned'); } catch(e) {}
-  var dur = Math.min(Math.round((Date.now() - sess.listenStart) / 1000), 60);
+  var dur = Math.round((Date.now() - sess.listenStart) / 1000);
   var ti = sess.tOrder[sess.cur];
   if (ti === undefined) return;
   var tr = getTrack(sess.playlist, ti);
