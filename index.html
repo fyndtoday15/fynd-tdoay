@@ -1067,6 +1067,25 @@ document.getElementById('s1').addEventListener('click', function() {
   // Mark as returning for future visits
   markReturning();
 
+  function logEntryState(state) {
+    var date = new Date().toISOString().slice(0,10);
+    fetch('/.netlify/functions/log-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: sess.id,
+        firstName: LS.get('firstName') || '',
+        email: LS.get('email') || '',
+        entryState: state,
+        playlist: sess.playlist || '',
+        date: date,
+        visitNumber: window._visitNumber || 1,
+        daysSinceLastVisit: window._daysSinceLastVisit,
+        entryUpdate: true,
+      }),
+    }).catch(function(err) { console.error('Entry log error:', err); });
+  }
+
   // Universal 24-hour entry state check — runs for all returning users before any routing
   // If expired, show entry screen first, then continue to intended destination via callback
   function showEntryThenRoute(routeFn) {
@@ -1074,6 +1093,7 @@ document.getElementById('s1').addEventListener('click', function() {
       sess.entryState = state;
       try { localStorage.setItem('fynd_entryState', state); } catch(e) {}
       try { localStorage.setItem('fynd_entryStateTime', Date.now().toString()); } catch(e) {}
+      logEntryState(state);
       routeFn();
     });
     show('s2');
@@ -1252,6 +1272,7 @@ document.getElementById('s1').addEventListener('click', function() {
     sess.entryState = state;
     try { localStorage.setItem('fynd_entryState', state); } catch(e) {}
     try { localStorage.setItem('fynd_entryStateTime', Date.now().toString()); } catch(e) {}
+    logEntryState(state);
     show('s3');
     // Play immediately after screen switch — still within gesture context on Safari
     if (widgetReady) {
